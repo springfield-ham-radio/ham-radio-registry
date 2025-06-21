@@ -1,6 +1,6 @@
 import type { ILogLayer } from 'loglayer';
 import type { RadioModelId, RadioCodec } from '@springfield/ham-radio-api';
-import type { RadioConfiguration, ValidationResult } from '../types/radio-config.js';
+import type { RegistryRadio, ValidationResult } from '../types/radio-config.js';
 import type { PluginModule } from '../types/plugin-module.js';
 import type { SharedComponentManager } from './shared-components.js';
 import type { NpmClient } from '../utils/npm-client.js';
@@ -15,22 +15,22 @@ import { existsSync } from 'fs';
  */
 export interface RadioConfigRegistry {
   // Discover all available radio configurations from npm modules
-  discoverConfigurations(): Promise<RadioConfiguration[]>;
+  discoverConfigurations(): Promise<RegistryRadio[]>;
 
   // Get configuration by ID
-  getConfiguration(configId: string): Promise<RadioConfiguration | null>;
+  getConfiguration(configId: string): Promise<RegistryRadio | null>;
 
   // Get configurations by manufacturer
-  getConfigurationsByManufacturer(manufacturer: string): Promise<RadioConfiguration[]>;
+  getConfigurationsByManufacturer(manufacturer: string): Promise<RegistryRadio[]>;
 
   // Get configurations by module
-  getConfigurationsByModule(moduleId: string): Promise<RadioConfiguration[]>;
+  getConfigurationsByModule(moduleId: string): Promise<RegistryRadio[]>;
 
   // Validate configuration
-  validateConfiguration(config: RadioConfiguration): ValidationResult;
+  validateConfiguration(config: RegistryRadio): ValidationResult;
 
   // Register a new configuration
-  registerConfiguration(config: RadioConfiguration): Promise<void>;
+  registerConfiguration(config: RegistryRadio): Promise<void>;
 
   // Install and load a new plugin module
   installPlugin(moduleId: string): Promise<void>;
@@ -46,7 +46,7 @@ export interface RadioConfigRegistry {
  * NPM-based configuration registry implementation
  */
 export class NpmBasedConfigRegistry implements RadioConfigRegistry {
-  private configCache = new Map<string, RadioConfiguration>();
+  private configCache = new Map<string, RegistryRadio>();
   private pluginCache = new Map<string, PluginModule>();
   private codecCache = new Map<string, RadioCodec>();
   private sharedComponentManager: SharedComponentManager;
@@ -59,8 +59,8 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
     this.npmClient = new DefaultNpmClient(logger);
   }
 
-  async discoverConfigurations(): Promise<RadioConfiguration[]> {
-    const configs: RadioConfiguration[] = [];
+  async discoverConfigurations(): Promise<RegistryRadio[]> {
+    const configs: RegistryRadio[] = [];
 
     // Discover plugin modules from node_modules
     const pluginModules = await this.discoverPluginModules();
@@ -77,7 +77,7 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
     return configs;
   }
 
-  async getConfiguration(configId: string): Promise<RadioConfiguration | null> {
+  async getConfiguration(configId: string): Promise<RegistryRadio | null> {
     // Check cache first
     if (this.configCache.has(configId)) {
       return this.configCache.get(configId)!;
@@ -91,17 +91,17 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
     return this.configCache.get(configId) || null;
   }
 
-  async getConfigurationsByManufacturer(manufacturer: string): Promise<RadioConfiguration[]> {
+  async getConfigurationsByManufacturer(manufacturer: string): Promise<RegistryRadio[]> {
     const configs = await this.discoverConfigurations();
     return configs.filter((config) => config.id.manufacturer.toLowerCase() === manufacturer.toLowerCase());
   }
 
-  async getConfigurationsByModule(moduleId: string): Promise<RadioConfiguration[]> {
+  async getConfigurationsByModule(moduleId: string): Promise<RegistryRadio[]> {
     const configs = await this.discoverConfigurations();
     return configs.filter((config) => config.metadata.moduleId === moduleId);
   }
 
-  validateConfiguration(config: RadioConfiguration): ValidationResult {
+  validateConfiguration(config: RegistryRadio): ValidationResult {
     const errors: string[] = [];
     const warnings: string[] = [];
 
@@ -138,7 +138,7 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
     };
   }
 
-  async registerConfiguration(config: RadioConfiguration): Promise<void> {
+  async registerConfiguration(config: RegistryRadio): Promise<void> {
     const validation = this.validateConfiguration(config);
     if (!validation.isValid) {
       throw new Error(`Invalid configuration: ${validation.errors.join(', ')}`);
@@ -255,8 +255,8 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
     } as PluginModule;
   }
 
-  private async loadConfigurationsFromPlugin(plugin: PluginModule): Promise<RadioConfiguration[]> {
-    const configs: RadioConfiguration[] = [];
+  private async loadConfigurationsFromPlugin(plugin: PluginModule): Promise<RegistryRadio[]> {
+    const configs: RegistryRadio[] = [];
 
     try {
       const configFiles = await this.findConfigFiles(plugin.configPath);
@@ -300,12 +300,12 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
     return files.filter((file) => file.endsWith('.json')).map((file) => join(configPath, file));
   }
 
-  private async loadConfiguration(configFile: string): Promise<RadioConfiguration> {
+  private async loadConfiguration(configFile: string): Promise<RegistryRadio> {
     const content = await readFile(configFile, 'utf8');
     return JSON.parse(content);
   }
 
-  private async resolveSharedComponents(config: RadioConfiguration, plugin: PluginModule): Promise<void> {
+  private async resolveSharedComponents(config: RegistryRadio, plugin: PluginModule): Promise<void> {
     // Resolve schema references
     if (config.settingsSchema.settingsSchema && typeof config.settingsSchema.settingsSchema === 'object' && '$ref' in config.settingsSchema.settingsSchema) {
       const schemaPath = this.sharedComponentManager.resolveReference(config.settingsSchema.settingsSchema.$ref, plugin.configPath);
@@ -318,7 +318,7 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
     }
   }
 
-  private async loadCodecFromConfig(config: RadioConfiguration): Promise<RadioCodec | null> {
+  private async loadCodecFromConfig(config: RegistryRadio): Promise<RadioCodec | null> {
     if (!config.codec || config.codec.type !== 'shared' || !config.codec.reference) {
       return null;
     }

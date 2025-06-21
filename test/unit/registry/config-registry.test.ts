@@ -1,15 +1,11 @@
+import type { RegistryRadio } from '../../../src/types/radio-config.js';
+import { RadioModelId } from '@springfield/ham-radio-api';
 import { describe, it } from 'node:test';
 import { expect } from 'chai';
 import { NpmBasedConfigRegistry } from '../../../src/registry/config-registry.js';
-import type { RadioConfiguration } from '../../../src/types/radio-config.js';
+import { MockLogLayer } from 'loglayer';
 
-// Mock logger implementing ILogLayer interface
-const mockLogger = {
-  debug: () => {},
-  info: () => {},
-  warn: () => {},
-  error: () => {},
-};
+const mockLogger = new MockLogLayer();
 
 describe('NpmBasedConfigRegistry', () => {
   it('should instantiate without error', () => {
@@ -30,7 +26,7 @@ describe('NpmBasedConfigRegistry', () => {
 
   it('should validate a minimal invalid configuration', () => {
     const registry = new NpmBasedConfigRegistry(mockLogger);
-    const invalidConfig = {} as RadioConfiguration;
+    const invalidConfig = {} as RegistryRadio;
     const result = registry.validateConfiguration(invalidConfig);
     expect(result.isValid).to.be.false;
     expect(result.errors).to.include('Configuration must have a valid model ID');
@@ -39,7 +35,7 @@ describe('NpmBasedConfigRegistry', () => {
   it('should validate a minimal valid configuration', () => {
     const registry = new NpmBasedConfigRegistry(mockLogger);
     const validConfig = {
-      id: { model: 'test-model', name: 'Test', manufacturer: 'TestCo' },
+      id: { model: RadioModelId('test-model'), name: 'Test', manufacturer: 'TestCo' },
       version: '1.0.0',
       description: 'Test config',
       capabilities: {
@@ -63,7 +59,7 @@ describe('NpmBasedConfigRegistry', () => {
       readMemory: [{ sendReceive: { send: [1], receive: { type: 'exact', value: 1, length: 1 }, description: 'desc' } }],
       writeMemory: [{ sendReceive: { send: [1], receive: { type: 'exact', value: 1, length: 1 }, description: 'desc' } }],
       settingsSchema: {
-        model: 'test-model',
+        model: RadioModelId('test-model'),
         settingsSchema: {},
         channelSchema: {},
       },
@@ -74,7 +70,7 @@ describe('NpmBasedConfigRegistry', () => {
         author: 'Test',
         license: 'MIT',
       },
-    } as RadioConfiguration;
+    } as RegistryRadio;
     const result = registry.validateConfiguration(validConfig);
     expect(result.isValid).to.be.true;
     expect(result.errors).to.be.empty;
