@@ -1,0 +1,379 @@
+import type { ILogLayer } from 'loglayer';
+import type { RadioModelId, RadioCodec } from '@springfield/ham-radio-api';
+import type { RadioConfiguration, ValidationResult } from '../types/radio-config.js';
+import type { PluginModule } from '../types/plugin-module.js';
+import type { SharedComponentManager } from './shared-components.js';
+import type { NpmClient } from '../utils/npm-client.js';
+import { DefaultSharedComponentManager } from './shared-components.js';
+import { DefaultNpmClient } from '../utils/npm-client.js';
+import { readdir, readFile } from 'fs/promises';
+import { join } from 'path';
+import { existsSync } from 'fs';
+
+/**
+ * Radio configuration registry interface
+ */
+export interface RadioConfigRegistry {
+  // Discover all available radio configurations from npm modules
+  discoverConfigurations(): Promise<RadioConfiguration[]>;
+
+  // Get configuration by ID
+  getConfiguration(configId: string): Promise<RadioConfiguration | null>;
+
+  // Get configurations by manufacturer
+  getConfigurationsByManufacturer(manufacturer: string): Promise<RadioConfiguration[]>;
+
+  // Get configurations by module
+  getConfigurationsByModule(moduleId: string): Promise<RadioConfiguration[]>;
+
+  // Validate configuration
+  validateConfiguration(config: RadioConfiguration): ValidationResult;
+
+  // Register a new configuration
+  registerConfiguration(config: RadioConfiguration): Promise<void>;
+
+  // Install and load a new plugin module
+  installPlugin(moduleId: string): Promise<void>;
+
+  // List installed plugin modules
+  listInstalledPlugins(): Promise<PluginModule[]>;
+
+  // Get codec for a radio model
+  getCodec(modelId: RadioModelId): Promise<RadioCodec | null>;
+}
+
+/**
+ * NPM-based configuration registry implementation
+ */
+export class NpmBasedConfigRegistry implements RadioConfigRegistry {
+  private configCache = new Map<string, RadioConfiguration>();
+  private pluginCache = new Map<string, PluginModule>();
+  private codecCache = new Map<string, RadioCodec>();
+  private sharedComponentManager: SharedComponentManager;
+  private npmClient: NpmClient;
+  private logger: ILogLayer;
+
+  constructor(logger: ILogLayer) {
+    this.logger = logger;
+    this.sharedComponentManager = new DefaultSharedComponentManager(logger);
+    this.npmClient = new DefaultNpmClient(logger);
+  }
+
+  async discoverConfigurations(): Promise<RadioConfiguration[]> {
+    const configs: RadioConfiguration[] = [];
+
+    // Discover plugin modules from node_modules
+    const pluginModules = await this.discoverPluginModules();
+
+    for (const plugin of pluginModules) {
+      try {
+        const pluginConfigs = await this.loadConfigurationsFromPlugin(plugin);
+        configs.push(...pluginConfigs);
+      } catch (error) {
+        this.logger.withError(error).warn('Failed to load configurations from plugin ' + plugin.name);
+      }
+    }
+
+    return configs;
+  }
+
+  async getConfiguration(configId: string): Promise<RadioConfiguration | null> {
+    // Check cache first
+    if (this.configCache.has(configId)) {
+      return this.configCache.get(configId)!;
+    }
+
+    // Discover configurations if cache is empty
+    if (this.configCache.size === 0) {
+      await this.discoverConfigurations();
+    }
+
+    return this.configCache.get(configId) || null;
+  }
+
+  async getConfigurationsByManufacturer(manufacturer: string): Promise<RadioConfiguration[]> {
+    const configs = await this.discoverConfigurations();
+    return configs.filter((config) => config.id.manufacturer.toLowerCase() === manufacturer.toLowerCase());
+  }
+
+  async getConfigurationsByModule(moduleId: string): Promise<RadioConfiguration[]> {
+    const configs = await this.discoverConfigurations();
+    return configs.filter((config) => config.metadata.moduleId === moduleId);
+  }
+
+  validateConfiguration(config: RadioConfiguration): ValidationResult {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    // Basic validation
+    if (!config.id?.model) {
+      errors.push('Configuration must have a valid model ID');
+    }
+
+    if (!config.serialConfig) {
+      errors.push('Configuration must have serial configuration');
+    }
+
+    if (!config.memoryConfig) {
+      errors.push('Configuration must have memory configuration');
+    }
+
+    if (!config.readMemory || config.readMemory.length === 0) {
+      errors.push('Configuration must have read memory protocol');
+    }
+
+    if (!config.writeMemory || config.writeMemory.length === 0) {
+      errors.push('Configuration must have write memory protocol');
+    }
+
+    // Schema validation
+    if (!config.settingsSchema) {
+      errors.push('Configuration must have settings schema');
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  }
+
+  async registerConfiguration(config: RadioConfiguration): Promise<void> {
+    const validation = this.validateConfiguration(config);
+    if (!validation.isValid) {
+      throw new Error(`Invalid configuration: ${validation.errors.join(', ')}`);
+    }
+
+    this.configCache.set(config.id.model, config);
+    this.logger.withMetadata({ modelId: config.id.model }).info('Registered configuration');
+  }
+
+  async installPlugin(moduleId: string): Promise<void> {
+    // Validate plugin before installation
+    const validation = await this.validatePlugin(moduleId);
+    if (!validation.isValid) {
+      throw new Error(`Plugin validation failed: ${validation.errors.join(', ')}`);
+    }
+
+    // Install using yarn
+    await this.runPackageManager(['add', moduleId]);
+
+    // Refresh configuration registry
+    await this.discoverConfigurations();
+
+    this.logger.withMetadata({ moduleId }).info('Installed plugin');
+  }
+
+  async listInstalledPlugins(): Promise<PluginModule[]> {
+    return Array.from(this.pluginCache.values());
+  }
+
+  async getCodec(modelId: RadioModelId): Promise<RadioCodec | null> {
+    // Check cache first
+    if (this.codecCache.has(modelId)) {
+      return this.codecCache.get(modelId)!;
+    }
+
+    // Find configuration for this model
+    const config = await this.getConfiguration(modelId);
+    if (!config || !config.codec) {
+      return null;
+    }
+
+    // Load codec based on configuration
+    const codec = await this.loadCodecFromConfig(config);
+    if (codec) {
+      this.codecCache.set(modelId, codec);
+    }
+
+    return codec;
+  }
+
+  private async discoverPluginModules(): Promise<PluginModule[]> {
+    const plugins: PluginModule[] = [];
+
+    // Scan node_modules for radio modules
+    const nodeModulesPath = join(process.cwd(), 'node_modules');
+
+    if (!existsSync(nodeModulesPath)) {
+      return plugins;
+    }
+
+    const entries = await readdir(nodeModulesPath, { withFileTypes: true });
+
+    for (const entry of entries) {
+      if (entry.isDirectory()) {
+        const packageJsonPath = join(nodeModulesPath, entry.name, 'package.json');
+
+        try {
+          const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'));
+
+          // Check if this is a radio module
+          if (this.isRadioModule(packageJson)) {
+            const plugin = await this.loadPluginModule(entry.name, packageJson);
+            plugins.push(plugin);
+            this.pluginCache.set(entry.name, plugin);
+          }
+        } catch (error) {
+          // Skip invalid packages
+          this.logger.withMetadata({ name: entry.name, error } as any).debug('Skipped invalid package');
+        }
+      }
+    }
+
+    return plugins;
+  }
+
+  private isRadioModule(packageJson: any): boolean {
+    const name = packageJson.name || '';
+
+    // Check naming convention
+    const isNamedCorrectly = name.includes('radio-module') || name.startsWith('@springfield/radio-module-');
+
+    // Check springfield plugin field
+    const hasSpringfieldField = packageJson.springfield?.pluginType === 'radio-module';
+
+    // Check keywords
+    const hasKeywords = packageJson.keywords?.includes('radio-module');
+
+    return isNamedCorrectly || hasSpringfieldField || hasKeywords;
+  }
+
+  private async loadPluginModule(moduleName: string, packageJson: any): Promise<PluginModule> {
+    const modulePath = join(process.cwd(), 'node_modules', moduleName);
+    const springfieldConfig = packageJson.springfield || {};
+
+    return {
+      name: moduleName,
+      version: packageJson.version,
+      manufacturer: springfieldConfig.manufacturer,
+      configPath: join(modulePath, springfieldConfig.configPath || 'configs'),
+      sharedPath: join(modulePath, springfieldConfig.sharedPath || 'shared'),
+      codecFactoryPath: springfieldConfig.codecFactory ? join(modulePath, springfieldConfig.codecFactory) : undefined,
+      capabilities: springfieldConfig.capabilities || {},
+      packageJson,
+    } as PluginModule;
+  }
+
+  private async loadConfigurationsFromPlugin(plugin: PluginModule): Promise<RadioConfiguration[]> {
+    const configs: RadioConfiguration[] = [];
+
+    try {
+      const configFiles = await this.findConfigFiles(plugin.configPath);
+
+      for (const configFile of configFiles) {
+        try {
+          const config = await this.loadConfiguration(configFile);
+
+          // Resolve shared component references
+          await this.resolveSharedComponents(config, plugin);
+
+          // Add plugin metadata
+          config.metadata = {
+            ...config.metadata,
+            moduleId: plugin.name,
+            moduleVersion: plugin.version,
+            pluginPath: plugin.configPath,
+          };
+
+          if (this.validateConfiguration(config).isValid) {
+            configs.push(config);
+            this.configCache.set(config.id.model, config);
+          }
+        } catch (error) {
+          this.logger.withError(error).warn(`Failed to load configuration from ${configFile}:`);
+        }
+      }
+    } catch (error) {
+      this.logger.withError(error).warn(`Failed to access plugin directory ${plugin.configPath}:`);
+    }
+
+    return configs;
+  }
+
+  private async findConfigFiles(configPath: string): Promise<string[]> {
+    if (!existsSync(configPath)) {
+      return [];
+    }
+
+    const files = await readdir(configPath);
+    return files.filter((file) => file.endsWith('.json')).map((file) => join(configPath, file));
+  }
+
+  private async loadConfiguration(configFile: string): Promise<RadioConfiguration> {
+    const content = await readFile(configFile, 'utf8');
+    return JSON.parse(content);
+  }
+
+  private async resolveSharedComponents(config: RadioConfiguration, plugin: PluginModule): Promise<void> {
+    // Resolve schema references
+    if (config.settingsSchema.settingsSchema && typeof config.settingsSchema.settingsSchema === 'object' && '$ref' in config.settingsSchema.settingsSchema) {
+      const schemaPath = this.sharedComponentManager.resolveReference(config.settingsSchema.settingsSchema.$ref, plugin.configPath);
+      config.settingsSchema.settingsSchema = await this.sharedComponentManager.loadSchema(schemaPath);
+    }
+
+    if (config.settingsSchema.channelSchema && typeof config.settingsSchema.channelSchema === 'object' && '$ref' in config.settingsSchema.channelSchema) {
+      const schemaPath = this.sharedComponentManager.resolveReference(config.settingsSchema.channelSchema.$ref, plugin.configPath);
+      config.settingsSchema.channelSchema = await this.sharedComponentManager.loadSchema(schemaPath);
+    }
+  }
+
+  private async loadCodecFromConfig(config: RadioConfiguration): Promise<RadioCodec | null> {
+    if (!config.codec || config.codec.type !== 'shared' || !config.codec.reference) {
+      return null;
+    }
+
+    const codecPath = this.sharedComponentManager.resolveReference(config.codec.reference, config.metadata.pluginPath || '');
+
+    return this.sharedComponentManager.loadCodec(codecPath, {
+      modelId: config.id.model,
+      ...config.codec.config,
+    });
+  }
+
+  private async validatePlugin(moduleId: string): Promise<ValidationResult> {
+    const errors: string[] = [];
+    const warnings: string[] = [];
+
+    try {
+      // Get package info from npm registry
+      const packageInfo = await this.npmClient.getPackageInfo(moduleId);
+
+      // Check if it's a radio module
+      if (!this.isRadioModule(packageInfo)) {
+        errors.push('Package is not a radio module');
+      }
+
+      // Check version compatibility
+      if (!this.isVersionCompatible()) {
+        errors.push('Module version is not compatible with current system');
+      }
+    } catch (error) {
+      errors.push(`Failed to validate plugin: ${error}`);
+    }
+
+    return {
+      isValid: errors.length === 0,
+      errors,
+      warnings,
+    };
+  }
+
+  private isVersionCompatible(): boolean {
+    // Basic version compatibility check
+    // Could be enhanced with semver validation
+    return true;
+  }
+
+  private async runPackageManager(args: string[]): Promise<void> {
+    const { exec } = await import('child_process');
+    const { promisify } = await import('util');
+    const execAsync = promisify(exec);
+
+    try {
+      await execAsync(`yarn ${args.join(' ')}`);
+    } catch (error) {
+      throw new Error(`Package manager error: ${error}`);
+    }
+  }
+}
