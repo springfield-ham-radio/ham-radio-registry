@@ -1,6 +1,6 @@
 {
   "name": "@springfield/ham-radio-registry",
-  "version": "15.0.0",
+  "version": "0.1.0",
   "author": "Bryan Hunt",
   "packageManager": "yarn@4.9.2",
   "main": "dist/index.js",
@@ -62,7 +62,7 @@
     "typescript": "5.8.3"
   },
   "dependencies": {
-    "@springfield/ham-radio-api": "^15.0.0",
+    "@springfield/ham-radio-api": "^16.0.0",
     "loglayer": "^6.4.3"
   }
 }
