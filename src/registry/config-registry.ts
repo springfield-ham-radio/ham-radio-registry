@@ -1,8 +1,8 @@
 import type { ILogLayer } from 'loglayer';
-import type { RadioModelId, RadioCodec } from '@springfield/ham-radio-api';
-import type { RegistryRadio, ValidationResult } from '../types/radio-config.js';
+import type { RadioModelId, RadioCodec, ValidationResult } from '@springfield/ham-radio-api';
+import type { RegistryRadio } from '../types/radio-config.js';
 import type { PluginModule } from '../types/plugin-module.js';
-import type { SharedComponentManager } from './shared-components.js';
+import type { SharedComponentManager } from '@springfield/ham-radio-api';
 import type { NpmClient } from '../utils/npm-client.js';
 import { DefaultSharedComponentManager } from './shared-components.js';
 import { DefaultNpmClient } from '../utils/npm-client.js';

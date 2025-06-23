@@ -3,8 +3,10 @@ export type {
   RadioConfigMetadata,
   RadioCapabilities,
   CodecConfig,
-  ValidationResult,
 } from './types/radio-config.js';
+
+// Re-export common types from ham-radio-api
+export type { ValidationResult } from '@springfield/ham-radio-api';
 
 export type {
   PluginModule,
@@ -22,7 +24,7 @@ import type { RadioConfigRegistry } from './registry/config-registry.js';
 import { NpmBasedConfigRegistry } from './registry/config-registry.js';
 
 // Shared components
-export type { SharedComponentManager } from './registry/shared-components.js';
+export type { SharedComponentManager } from '@springfield/ham-radio-api';
 export { DefaultSharedComponentManager } from './registry/shared-components.js';
 
 // NPM client

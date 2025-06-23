@@ -6,20 +6,21 @@ import type { Radio } from '@springfield/ham-radio-api';
 export interface RadioConfigMetadata {
   moduleId: string;
   moduleVersion: string;
-  lastUpdated: string;
-  author: string;
-  license: string;
-  pluginPath?: string;
+  pluginPath: string;
+  lastUpdated?: string;
+  author?: string;
+  license?: string;
 }
 
 /**
  * Radio capabilities
  */
 export interface RadioCapabilities {
+  dslProtocols: boolean;
+  customCodecs: boolean;
   memoryRead: boolean;
   memoryWrite: boolean;
-  channelProgramming: boolean;
-  settingsProgramming: boolean;
+  sharedComponents: boolean;
 }
 
 /**
@@ -28,18 +29,12 @@ export interface RadioCapabilities {
 export interface CodecConfig {
   type: 'shared' | 'inline';
   reference?: string;
-  config?: Record<string, any>;
+  config?: Record<string, unknown>;
 }
 
 /**
- * Validation result
+ * Registry radio configuration
  */
-export interface ValidationResult {
-  isValid: boolean;
-  errors: string[];
-  warnings: string[];
-}
-
 export interface RegistryRadio extends Radio {
   $schema?: string;
   capabilities: RadioCapabilities;

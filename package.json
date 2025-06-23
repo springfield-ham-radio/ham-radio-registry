@@ -62,7 +62,7 @@
     "typescript": "5.8.3"
   },
   "dependencies": {
-    "@springfield/ham-radio-api": "^16.0.0",
+    "@springfield/ham-radio-api": "^16.1.0",
     "loglayer": "^6.4.3"
   }
 }
