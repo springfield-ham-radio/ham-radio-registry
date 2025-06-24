@@ -1,3 +1,10 @@
+## [1.0.1](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/compare/v1.0.0...v1.0.1) (2025-06-24)
+
+
+### Bug Fixes
+
+* add publishConfig to package.json for public access ([e8203b0](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/e8203b0945144ef6c20ec5f945f507b1df3eb326))
+
 ## 1.0.0 (2025-06-24)
 
 
