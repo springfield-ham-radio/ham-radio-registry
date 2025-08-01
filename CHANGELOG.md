@@ -1,3 +1,10 @@
+## [1.0.2](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/compare/v1.0.1...v1.0.2) (2025-08-01)
+
+
+### Bug Fixes
+
+* **deps:** update dependency loglayer to ^6.6.0 ([08fdc09](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/08fdc09083c2876762be95e24085fa0a7edfb037))
+
 ## [1.0.1](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/compare/v1.0.0...v1.0.1) (2025-06-24)
 
 
