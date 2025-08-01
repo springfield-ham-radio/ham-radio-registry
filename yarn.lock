@@ -1009,7 +1009,7 @@ __metadata:
     "@springfield/ham-radio-api": "npm:^16.1.1"
     chai: "npm:5.2.0"
     husky: "npm:9.1.7"
-    loglayer: "npm:^6.4.3"
+    loglayer: "npm:^6.6.0"
     oxlint: "npm:1.8.0"
     semantic-release: "npm:23.1.1"
     semantic-release-yarn: "npm:3.0.2"
@@ -3159,6 +3159,18 @@ __metadata:
     "@loglayer/shared": "npm:2.3.1"
     "@loglayer/transport": "npm:2.2.1"
   checksum: 10c0/516bdbdf09581acf8518e6db5905df17f1eeb51f4d5e5aa27dfc9f31fdfbc60426f925c9278702bf038cb00864f03d39d423159a4bdd4423c29f037c880b2dc6
+  languageName: node
+  linkType: hard
+
+"loglayer@npm:^6.6.0":
+  version: 6.6.0
+  resolution: "loglayer@npm:6.6.0"
+  dependencies:
+    "@loglayer/context-manager": "npm:1.1.1"
+    "@loglayer/plugin": "npm:2.1.1"
+    "@loglayer/shared": "npm:2.3.1"
+    "@loglayer/transport": "npm:2.2.1"
+  checksum: 10c0/414ca8b305a4c8c2d6b601ad0f979ade9813e9e79fc49b95413e3f51c972390f88d3a768da96b6b0d0c95b3f09fafd67f7931849179b6321799a85926ec052a3
   languageName: node
   linkType: hard
 
