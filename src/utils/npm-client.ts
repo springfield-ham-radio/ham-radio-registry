@@ -22,7 +22,7 @@ export interface NpmClient {
  * NPM search response interface
  */
 interface NpmSearchResponse {
-  objects: Array<{
+  objects: {
     package: {
       name: string;
       version: string;
@@ -35,7 +35,7 @@ interface NpmSearchResponse {
       date?: string;
       springfield?: any;
     };
-  }>;
+  }[];
 }
 
 /**

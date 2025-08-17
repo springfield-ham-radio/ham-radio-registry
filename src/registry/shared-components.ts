@@ -1,7 +1,7 @@
-import type { ILogLayer } from 'loglayer';
-import { readFile } from 'fs/promises';
-import { join } from 'path';
 import type { RadioCodec, SharedComponentManager } from '@springfield/ham-radio-api';
+import type { ILogLayer } from 'loglayer';
+import { join } from 'node:path';
+import { readFile } from 'node:fs/promises';
 
 /**
  * Default implementation of the shared component manager

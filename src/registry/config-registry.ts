@@ -1,14 +1,28 @@
-import type { ILogLayer } from 'loglayer';
-import type { RadioModelId, RadioCodec, ValidationResult } from '@springfield/ham-radio-api';
-import type { RegistryRadio } from '../types/radio-config.js';
-import type { PluginModule } from '../types/plugin-module.js';
-import type { SharedComponentManager } from '@springfield/ham-radio-api';
-import type { NpmClient } from '../utils/npm-client.js';
+import { DefaultNpmClient, type NpmClient } from '../utils/npm-client.js';
+import type { RadioCodec, RadioModelId, SharedComponentManager, ValidationResult } from '@springfield/ham-radio-api';
+import { readFile, readdir } from 'node:fs/promises';
 import { DefaultSharedComponentManager } from './shared-components.js';
-import { DefaultNpmClient } from '../utils/npm-client.js';
-import { readdir, readFile } from 'fs/promises';
-import { join } from 'path';
-import { existsSync } from 'fs';
+import type { ILogLayer } from 'loglayer';
+import type { PluginModule } from '../types/plugin-module.js';
+import type { RegistryRadio } from '../types/radio-config.js';
+import { existsSync } from 'node:fs';
+import { join } from 'node:path';
+
+export interface SpringfieldRadioModuleConfig {
+  pluginType: string;
+  codecFactory?: string;
+  configPath?: string;
+  sharedPath?: string;
+  manufacturer?: string;
+  capabilities?: Record<string, unknown>;
+}
+
+export interface PackageJson extends Record<string, unknown> {
+  name: string;
+  version: string;
+  keywords?: string[];
+  springfield: SpringfieldRadioModuleConfig;
+}
 
 /**
  * Radio configuration registry interface
@@ -18,7 +32,7 @@ export interface RadioConfigRegistry {
   discoverConfigurations(): Promise<RegistryRadio[]>;
 
   // Get configuration by ID
-  getConfiguration(configId: string): Promise<RegistryRadio | null>;
+  getConfiguration(configId: string): Promise<RegistryRadio | undefined>;
 
   // Get configurations by manufacturer
   getConfigurationsByManufacturer(manufacturer: string): Promise<RegistryRadio[]>;
@@ -39,7 +53,7 @@ export interface RadioConfigRegistry {
   listInstalledPlugins(): Promise<PluginModule[]>;
 
   // Get codec for a radio model
-  getCodec(modelId: RadioModelId): Promise<RadioCodec | null>;
+  getCodec(modelId: RadioModelId): Promise<RadioCodec | undefined>;
 }
 
 /**
@@ -70,17 +84,17 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
         const pluginConfigs = await this.loadConfigurationsFromPlugin(plugin);
         configs.push(...pluginConfigs);
       } catch (error) {
-        this.logger.withError(error).warn('Failed to load configurations from plugin ' + plugin.name);
+        this.logger.withMetadata({ pluignName: plugin.name }).withError(error).warn('Failed to load configurations from plugin ');
       }
     }
 
     return configs;
   }
 
-  async getConfiguration(configId: string): Promise<RegistryRadio | null> {
+  async getConfiguration(configId: string): Promise<RegistryRadio | undefined> {
     // Check cache first
     if (this.configCache.has(configId)) {
-      return this.configCache.get(configId)!;
+      return this.configCache.get(configId);
     }
 
     // Discover configurations if cache is empty
@@ -88,7 +102,7 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
       await this.discoverConfigurations();
     }
 
-    return this.configCache.get(configId) || null;
+    return this.configCache.get(configId);
   }
 
   async getConfigurationsByManufacturer(manufacturer: string): Promise<RegistryRadio[]> {
@@ -132,8 +146,8 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
     }
 
     return {
-      isValid: errors.length === 0,
       errors,
+      isValid: errors.length === 0,
       warnings,
     };
   }
@@ -165,19 +179,19 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
   }
 
   async listInstalledPlugins(): Promise<PluginModule[]> {
-    return Array.from(this.pluginCache.values());
+    return [...this.pluginCache.values()];
   }
 
-  async getCodec(modelId: RadioModelId): Promise<RadioCodec | null> {
+  async getCodec(modelId: RadioModelId): Promise<RadioCodec | undefined> {
     // Check cache first
     if (this.codecCache.has(modelId)) {
-      return this.codecCache.get(modelId)!;
+      return this.codecCache.get(modelId);
     }
 
     // Find configuration for this model
     const config = await this.getConfiguration(modelId);
     if (!config || !config.codec) {
-      return null;
+      return undefined;
     }
 
     // Load codec based on configuration
@@ -216,7 +230,7 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
           }
         } catch (error) {
           // Skip invalid packages
-          this.logger.withMetadata({ name: entry.name, error } as any).debug('Skipped invalid package');
+          this.logger.withMetadata({ error, name: entry.name }).debug('Skipped invalid package');
         }
       }
     }
@@ -224,7 +238,7 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
     return plugins;
   }
 
-  private isRadioModule(packageJson: any): boolean {
+  private isRadioModule(packageJson: PackageJson): boolean {
     const name = packageJson.name || '';
 
     // Check naming convention
@@ -234,24 +248,24 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
     const hasSpringfieldField = packageJson.springfield?.pluginType === 'radio-module';
 
     // Check keywords
-    const hasKeywords = packageJson.keywords?.includes('radio-module');
+    const hasKeywords = packageJson.keywords?.includes('radio-module') ?? false;
 
     return isNamedCorrectly || hasSpringfieldField || hasKeywords;
   }
 
-  private async loadPluginModule(moduleName: string, packageJson: any): Promise<PluginModule> {
+  private async loadPluginModule(moduleName: string, packageJson: PackageJson): Promise<PluginModule> {
     const modulePath = join(process.cwd(), 'node_modules', moduleName);
-    const springfieldConfig = packageJson.springfield || {};
+    const springfieldConfig = packageJson.springfield|| {};
 
     return {
-      name: moduleName,
-      version: packageJson.version,
-      manufacturer: springfieldConfig.manufacturer,
-      configPath: join(modulePath, springfieldConfig.configPath || 'configs'),
-      sharedPath: join(modulePath, springfieldConfig.sharedPath || 'shared'),
-      codecFactoryPath: springfieldConfig.codecFactory ? join(modulePath, springfieldConfig.codecFactory) : undefined,
       capabilities: springfieldConfig.capabilities || {},
+      codecFactoryPath: springfieldConfig.codecFactory ? join(modulePath, springfieldConfig.codecFactory) : undefined,
+      configPath: join(modulePath, springfieldConfig.configPath || 'configs'),
+      manufacturer: springfieldConfig.manufacturer,
+      name: moduleName,
       packageJson,
+      sharedPath: join(modulePath, springfieldConfig.sharedPath || 'shared'),
+      version: packageJson.version,
     } as PluginModule;
   }
 
@@ -308,19 +322,19 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
   private async resolveSharedComponents(config: RegistryRadio, plugin: PluginModule): Promise<void> {
     // Resolve schema references
     if (config.settingsSchema.settingsSchema && typeof config.settingsSchema.settingsSchema === 'object' && '$ref' in config.settingsSchema.settingsSchema) {
-      const schemaPath = this.sharedComponentManager.resolveReference(config.settingsSchema.settingsSchema.$ref, plugin.configPath);
+      const schemaPath = this.sharedComponentManager.resolveReference(config.settingsSchema.settingsSchema.$ref as string, plugin.configPath);
       config.settingsSchema.settingsSchema = await this.sharedComponentManager.loadSchema(schemaPath);
     }
 
     if (config.settingsSchema.channelSchema && typeof config.settingsSchema.channelSchema === 'object' && '$ref' in config.settingsSchema.channelSchema) {
-      const schemaPath = this.sharedComponentManager.resolveReference(config.settingsSchema.channelSchema.$ref, plugin.configPath);
+      const schemaPath = this.sharedComponentManager.resolveReference(config.settingsSchema.channelSchema.$ref as string, plugin.configPath);
       config.settingsSchema.channelSchema = await this.sharedComponentManager.loadSchema(schemaPath);
     }
   }
 
-  private async loadCodecFromConfig(config: RegistryRadio): Promise<RadioCodec | null> {
+  private async loadCodecFromConfig(config: RegistryRadio): Promise<RadioCodec | undefined> {
     if (!config.codec || config.codec.type !== 'shared' || !config.codec.reference) {
-      return null;
+      return undefined;
     }
 
     const codecPath = this.sharedComponentManager.resolveReference(config.codec.reference, config.metadata.pluginPath || '');
@@ -353,8 +367,8 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
     }
 
     return {
-      isValid: errors.length === 0,
       errors,
+      isValid: errors.length === 0,
       warnings,
     };
   }
@@ -366,8 +380,8 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
   }
 
   private async runPackageManager(args: string[]): Promise<void> {
-    const { exec } = await import('child_process');
-    const { promisify } = await import('util');
+    const { exec } = await import('node:child_process');
+    const { promisify } = await import('node:util');
     const execAsync = promisify(exec);
 
     try {

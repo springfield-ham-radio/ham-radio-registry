@@ -649,58 +649,100 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@oxlint/darwin-arm64@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@oxlint/darwin-arm64@npm:1.8.0"
+"@oxlint-tsgolint/darwin-arm64@npm:0.0.3":
+  version: 0.0.3
+  resolution: "@oxlint-tsgolint/darwin-arm64@npm:0.0.3"
   conditions: os=darwin & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxlint/darwin-x64@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@oxlint/darwin-x64@npm:1.8.0"
+"@oxlint-tsgolint/darwin-x64@npm:0.0.3":
+  version: 0.0.3
+  resolution: "@oxlint-tsgolint/darwin-x64@npm:0.0.3"
   conditions: os=darwin & cpu=x64
   languageName: node
   linkType: hard
 
-"@oxlint/linux-arm64-gnu@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@oxlint/linux-arm64-gnu@npm:1.8.0"
-  conditions: os=linux & cpu=arm64 & libc=glibc
+"@oxlint-tsgolint/linux-arm64@npm:0.0.3":
+  version: 0.0.3
+  resolution: "@oxlint-tsgolint/linux-arm64@npm:0.0.3"
+  conditions: os=linux & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxlint/linux-arm64-musl@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@oxlint/linux-arm64-musl@npm:1.8.0"
-  conditions: os=linux & cpu=arm64 & libc=musl
+"@oxlint-tsgolint/linux-x64@npm:0.0.3":
+  version: 0.0.3
+  resolution: "@oxlint-tsgolint/linux-x64@npm:0.0.3"
+  conditions: os=linux & cpu=x64
   languageName: node
   linkType: hard
 
-"@oxlint/linux-x64-gnu@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@oxlint/linux-x64-gnu@npm:1.8.0"
-  conditions: os=linux & cpu=x64 & libc=glibc
-  languageName: node
-  linkType: hard
-
-"@oxlint/linux-x64-musl@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@oxlint/linux-x64-musl@npm:1.8.0"
-  conditions: os=linux & cpu=x64 & libc=musl
-  languageName: node
-  linkType: hard
-
-"@oxlint/win32-arm64@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@oxlint/win32-arm64@npm:1.8.0"
+"@oxlint-tsgolint/win32-arm64@npm:0.0.3":
+  version: 0.0.3
+  resolution: "@oxlint-tsgolint/win32-arm64@npm:0.0.3"
   conditions: os=win32 & cpu=arm64
   languageName: node
   linkType: hard
 
-"@oxlint/win32-x64@npm:1.8.0":
-  version: 1.8.0
-  resolution: "@oxlint/win32-x64@npm:1.8.0"
+"@oxlint-tsgolint/win32-x64@npm:0.0.3":
+  version: 0.0.3
+  resolution: "@oxlint-tsgolint/win32-x64@npm:0.0.3"
+  conditions: os=win32 & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@oxlint/darwin-arm64@npm:1.12.0":
+  version: 1.12.0
+  resolution: "@oxlint/darwin-arm64@npm:1.12.0"
+  conditions: os=darwin & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@oxlint/darwin-x64@npm:1.12.0":
+  version: 1.12.0
+  resolution: "@oxlint/darwin-x64@npm:1.12.0"
+  conditions: os=darwin & cpu=x64
+  languageName: node
+  linkType: hard
+
+"@oxlint/linux-arm64-gnu@npm:1.12.0":
+  version: 1.12.0
+  resolution: "@oxlint/linux-arm64-gnu@npm:1.12.0"
+  conditions: os=linux & cpu=arm64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@oxlint/linux-arm64-musl@npm:1.12.0":
+  version: 1.12.0
+  resolution: "@oxlint/linux-arm64-musl@npm:1.12.0"
+  conditions: os=linux & cpu=arm64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@oxlint/linux-x64-gnu@npm:1.12.0":
+  version: 1.12.0
+  resolution: "@oxlint/linux-x64-gnu@npm:1.12.0"
+  conditions: os=linux & cpu=x64 & libc=glibc
+  languageName: node
+  linkType: hard
+
+"@oxlint/linux-x64-musl@npm:1.12.0":
+  version: 1.12.0
+  resolution: "@oxlint/linux-x64-musl@npm:1.12.0"
+  conditions: os=linux & cpu=x64 & libc=musl
+  languageName: node
+  linkType: hard
+
+"@oxlint/win32-arm64@npm:1.12.0":
+  version: 1.12.0
+  resolution: "@oxlint/win32-arm64@npm:1.12.0"
+  conditions: os=win32 & cpu=arm64
+  languageName: node
+  linkType: hard
+
+"@oxlint/win32-x64@npm:1.12.0":
+  version: 1.12.0
+  resolution: "@oxlint/win32-x64@npm:1.12.0"
   conditions: os=win32 & cpu=x64
   languageName: node
   linkType: hard
@@ -987,13 +1029,13 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@springfield/ham-radio-api@npm:^16.1.1":
-  version: 16.1.1
-  resolution: "@springfield/ham-radio-api@npm:16.1.1"
+"@springfield/ham-radio-api@npm:^16.1.3":
+  version: 16.1.3
+  resolution: "@springfield/ham-radio-api@npm:16.1.3"
   dependencies:
-    loglayer: "npm:^6.4.3"
+    loglayer: "npm:^6.6.0"
     ts-brand: "npm:^0.2.0"
-  checksum: 10c0/f95705235562486bc95d9e02533959a2b8ffd43cc6fc450477c83a6da3ccb8eba191a5d29ba02695afb1c07bb105079ae85fc7b270adc56623f4c9d8b0e02f9e
+  checksum: 10c0/dfaddb4973a6f59690c168ea8c40f406aee32dbb8ba13cea23a03c2a7635596e3528248f11cb2f5067fc11e3c92ef57f77bf55ed5fb1dc5cf368487abd636b15
   languageName: node
   linkType: hard
 
@@ -1006,11 +1048,11 @@ __metadata:
     "@semantic-release/changelog": "npm:6.0.3"
     "@semantic-release/git": "npm:10.0.1"
     "@semantic-release/gitlab": "npm:13.2.6"
-    "@springfield/ham-radio-api": "npm:^16.1.1"
+    "@springfield/ham-radio-api": "npm:^16.1.3"
     chai: "npm:5.2.1"
     husky: "npm:9.1.7"
     loglayer: "npm:^6.6.0"
-    oxlint: "npm:1.8.0"
+    oxlint: "npm:1.12.0"
     semantic-release: "npm:23.1.1"
     semantic-release-yarn: "npm:3.0.2"
     typescript: "npm:5.9.2"
@@ -3150,18 +3192,6 @@ __metadata:
   languageName: node
   linkType: hard
 
-"loglayer@npm:^6.4.3":
-  version: 6.4.3
-  resolution: "loglayer@npm:6.4.3"
-  dependencies:
-    "@loglayer/context-manager": "npm:1.1.1"
-    "@loglayer/plugin": "npm:2.1.1"
-    "@loglayer/shared": "npm:2.3.1"
-    "@loglayer/transport": "npm:2.2.1"
-  checksum: 10c0/516bdbdf09581acf8518e6db5905df17f1eeb51f4d5e5aa27dfc9f31fdfbc60426f925c9278702bf038cb00864f03d39d423159a4bdd4423c29f037c880b2dc6
-  languageName: node
-  linkType: hard
-
 "loglayer@npm:^6.6.0":
   version: 6.6.0
   resolution: "loglayer@npm:6.6.0"
@@ -3783,18 +3813,48 @@ __metadata:
   languageName: node
   linkType: hard
 
-"oxlint@npm:1.8.0":
-  version: 1.8.0
-  resolution: "oxlint@npm:1.8.0"
+"oxlint-tsgolint@npm:>=0.0.1":
+  version: 0.0.3
+  resolution: "oxlint-tsgolint@npm:0.0.3"
   dependencies:
-    "@oxlint/darwin-arm64": "npm:1.8.0"
-    "@oxlint/darwin-x64": "npm:1.8.0"
-    "@oxlint/linux-arm64-gnu": "npm:1.8.0"
-    "@oxlint/linux-arm64-musl": "npm:1.8.0"
-    "@oxlint/linux-x64-gnu": "npm:1.8.0"
-    "@oxlint/linux-x64-musl": "npm:1.8.0"
-    "@oxlint/win32-arm64": "npm:1.8.0"
-    "@oxlint/win32-x64": "npm:1.8.0"
+    "@oxlint-tsgolint/darwin-arm64": "npm:0.0.3"
+    "@oxlint-tsgolint/darwin-x64": "npm:0.0.3"
+    "@oxlint-tsgolint/linux-arm64": "npm:0.0.3"
+    "@oxlint-tsgolint/linux-x64": "npm:0.0.3"
+    "@oxlint-tsgolint/win32-arm64": "npm:0.0.3"
+    "@oxlint-tsgolint/win32-x64": "npm:0.0.3"
+  dependenciesMeta:
+    "@oxlint-tsgolint/darwin-arm64":
+      optional: true
+    "@oxlint-tsgolint/darwin-x64":
+      optional: true
+    "@oxlint-tsgolint/linux-arm64":
+      optional: true
+    "@oxlint-tsgolint/linux-x64":
+      optional: true
+    "@oxlint-tsgolint/win32-arm64":
+      optional: true
+    "@oxlint-tsgolint/win32-x64":
+      optional: true
+  bin:
+    tsgolint: bin/tsgolint.js
+  checksum: 10c0/4ffcaaac15d7a2381bb9fee25a0d943ca574c45271f43b3293b9ba410af86a7b11bc2a0492b095f81d0991f4ff25b13946c7e567a94075e62d80ff8d80a08c70
+  languageName: node
+  linkType: hard
+
+"oxlint@npm:1.12.0":
+  version: 1.12.0
+  resolution: "oxlint@npm:1.12.0"
+  dependencies:
+    "@oxlint/darwin-arm64": "npm:1.12.0"
+    "@oxlint/darwin-x64": "npm:1.12.0"
+    "@oxlint/linux-arm64-gnu": "npm:1.12.0"
+    "@oxlint/linux-arm64-musl": "npm:1.12.0"
+    "@oxlint/linux-x64-gnu": "npm:1.12.0"
+    "@oxlint/linux-x64-musl": "npm:1.12.0"
+    "@oxlint/win32-arm64": "npm:1.12.0"
+    "@oxlint/win32-x64": "npm:1.12.0"
+    oxlint-tsgolint: "npm:>=0.0.1"
   dependenciesMeta:
     "@oxlint/darwin-arm64":
       optional: true
@@ -3812,10 +3872,12 @@ __metadata:
       optional: true
     "@oxlint/win32-x64":
       optional: true
+    oxlint-tsgolint:
+      optional: true
   bin:
     oxc_language_server: bin/oxc_language_server
     oxlint: bin/oxlint
-  checksum: 10c0/48d5c205377a3e398a89dae25e0de904faf5cc07b1764a0b6fd3cc1a282434c294fab380071bc34f0782f7d864a6495666842d2210450bf535d4ee1102ec1fc3
+  checksum: 10c0/df96012d490855dccc963e4f9fb88426d1f56a7f577543c9a6e53ae1970c6d8894a91e05faead4ebe496d2129ec64f38017e0bdcd6b6c497b8584a4842eb6122
   languageName: node
   linkType: hard
 
