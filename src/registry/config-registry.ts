@@ -259,7 +259,7 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
       }
     } catch (error) {
       // Skip invalid scoped packages
-      this.logger.withMetadata({ error, scopeName }).debug('Skipped invalid scoped package directory');
+      this.logger.withError(error).withMetadata({ scopeName }).trace('Skipped invalid scoped package directory');
     }
   }
 
@@ -277,7 +277,7 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
       }
     } catch (error) {
       // Skip invalid packages
-      this.logger.withMetadata({ error, name: packageName }).debug('Skipped invalid package');
+      this.logger.withError(error).withMetadata({ packageName }).trace('Skipped invalid package');
     }
   }
 
