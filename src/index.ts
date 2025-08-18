@@ -3,6 +3,7 @@ export type {
   RadioConfigMetadata,
   RadioCapabilities,
   CodecConfig,
+  RegistryRadio,
 } from './types/radio-config.js';
 
 // Re-export common types from ham-radio-api
@@ -20,8 +21,8 @@ export type {
 } from './types/plugin-module.js';
 
 // Registry components
-import type { RadioConfigRegistry } from './registry/config-registry.js';
-import { NpmBasedConfigRegistry } from './registry/config-registry.js';
+export type { RadioConfigRegistry } from './registry/config-registry.js';
+import { NpmBasedConfigRegistry, type RadioConfigRegistry } from './registry/config-registry.js';
 
 // Shared components
 export type { SharedComponentManager } from '@springfield/ham-radio-api';

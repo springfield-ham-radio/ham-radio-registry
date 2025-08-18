@@ -217,25 +217,68 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
 
     for (const entry of entries) {
       if (entry.isDirectory()) {
-        const packageJsonPath = join(nodeModulesPath, entry.name, 'package.json');
-
-        try {
-          const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'));
-
-          // Check if this is a radio module
-          if (this.isRadioModule(packageJson)) {
-            const plugin = await this.loadPluginModule(entry.name, packageJson);
-            plugins.push(plugin);
-            this.pluginCache.set(entry.name, plugin);
-          }
-        } catch (error) {
-          // Skip invalid packages
-          this.logger.withMetadata({ error, name: entry.name }).debug('Skipped invalid package');
+        if (entry.name.startsWith('@')) {
+          // Handle scoped packages
+          await this.processScopedPackage(nodeModulesPath, entry.name, plugins);
+        } else {
+          // Handle regular packages
+          await this.processRegularPackage(nodeModulesPath, entry.name, plugins);
         }
       }
     }
 
     return plugins;
+  }
+
+    private async processScopedPackage(nodeModulesPath: string, scopeName: string, plugins: PluginModule[]): Promise<void> {
+    // First, try to process the scoped directory as a package itself
+    // (some scoped packages like @types/node have their own package.json)
+    const scopePackageJsonPath = join(nodeModulesPath, scopeName, 'package.json');
+
+    try {
+      if (existsSync(scopePackageJsonPath)) {
+        // The scoped directory itself is a package
+        await this.processRegularPackage(nodeModulesPath, scopeName, plugins);
+        return; // Don't scan subdirectories if this is a package itself
+      }
+    } catch (error) {
+      // If processing as a package fails, continue to scan subdirectories
+      this.logger.withMetadata({ error, scopeName }).debug('Scoped directory is not a package, scanning subdirectories');
+    }
+
+    // If the scoped directory is not a package itself, scan for sub-packages
+    try {
+      const scopePath = join(nodeModulesPath, scopeName);
+      const scopedEntries = await readdir(scopePath, { withFileTypes: true });
+
+      for (const scopedEntry of scopedEntries) {
+        if (scopedEntry.isDirectory()) {
+          const fullPackageName = `${scopeName}/${scopedEntry.name}`;
+          await this.processRegularPackage(nodeModulesPath, fullPackageName, plugins);
+        }
+      }
+    } catch (error) {
+      // Skip invalid scoped packages
+      this.logger.withMetadata({ error, scopeName }).debug('Skipped invalid scoped package directory');
+    }
+  }
+
+  private async processRegularPackage(nodeModulesPath: string, packageName: string, plugins: PluginModule[]): Promise<void> {
+    const packageJsonPath = join(nodeModulesPath, packageName, 'package.json');
+
+    try {
+      const packageJson = JSON.parse(await readFile(packageJsonPath, 'utf8'));
+
+      // Check if this is a radio module
+      if (this.isRadioModule(packageJson)) {
+        const plugin = await this.loadPluginModule(packageName, packageJson);
+        plugins.push(plugin);
+        this.pluginCache.set(packageName, plugin);
+      }
+    } catch (error) {
+      // Skip invalid packages
+      this.logger.withMetadata({ error, name: packageName }).debug('Skipped invalid package');
+    }
   }
 
   private isRadioModule(packageJson: PackageJson): boolean {
