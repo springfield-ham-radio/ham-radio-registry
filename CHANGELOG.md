@@ -1,3 +1,10 @@
+## [1.0.4](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/compare/v1.0.3...v1.0.4) (2025-08-18)
+
+
+### Bug Fixes
+
+* improve logging in NpmBasedConfigRegistry for error handling and package processing ([206b210](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/206b210e4e9f8ca4db4eca4e29db66aea5b626a9))
+
 ## [1.0.3](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/compare/v1.0.2...v1.0.3) (2025-08-18)
 
 
