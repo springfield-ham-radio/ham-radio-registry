@@ -61,7 +61,7 @@
     "@semantic-release/gitlab": "13.2.8",
     "chai": "5.2.1",
     "husky": "9.1.7",
-    "oxlint": "1.12.0",
+    "oxlint": "1.14.0",
     "semantic-release": "23.1.1",
     "semantic-release-yarn": "3.0.2",
     "typescript": "5.9.2"
