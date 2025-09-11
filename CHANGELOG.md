@@ -1,3 +1,17 @@
+## <small>1.0.5 (2025-09-11)</small>
+
+* fix(deps): update dependencies and modify test scripts ([327f2e4](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/327f2e4))
+* Merge branch 'renovate/oxlint-1.x' into 'main' ([95e333b](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/95e333b))
+* Merge branch 'renovate/semantic-release-monorepo' into 'main' ([e8ad461](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/e8ad461))
+* Merge branch 'renovate/semantic-release-monorepo' into 'main' ([f62e2a9](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/f62e2a9))
+* Merge branch 'renovate/yarn-monorepo' into 'main' ([5709597](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/5709597))
+* Merge branch 'renovate/yarn-monorepo' into 'main' ([e113a0a](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/e113a0a))
+* chore(deps): update dependency @semantic-release/gitlab to v13.2.7 ([171a0a3](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/171a0a3))
+* chore(deps): update dependency @semantic-release/gitlab to v13.2.8 ([9c0a295](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/9c0a295))
+* chore(deps): update dependency oxlint to v1.14.0 ([b7cb7ed](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/b7cb7ed))
+* chore(deps): update yarn to v4.9.3 ([c9d10b9](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/c9d10b9))
+* chore(deps): update yarn to v4.9.4 ([ddbac06](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/ddbac06))
+
 ## [1.0.4](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/compare/v1.0.3...v1.0.4) (2025-08-18)
 
 
