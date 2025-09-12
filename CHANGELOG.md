@@ -1,3 +1,10 @@
+## <small>1.0.6 (2025-09-12)</small>
+
+* Merge branch 'renovate/pin-dependencies' into 'main' ([a7fd5ad](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/a7fd5ad))
+* Merge branch 'renovate/springfield-ham-radio-api-16.x' into 'main' ([ec026b2](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/ec026b2))
+* fix(deps): update dependency @springfield/ham-radio-api to ^16.1.4 ([8e61cb7](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/8e61cb7))
+* chore(deps): pin dependency tsx to 4.20.5 ([2020233](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/2020233))
+
 ## <small>1.0.5 (2025-09-11)</small>
 
 * fix(deps): update dependencies and modify test scripts ([327f2e4](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/327f2e4))
