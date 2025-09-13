@@ -1,3 +1,7 @@
+## <small>1.0.7 (2025-09-13)</small>
+
+* fix(deps): update dependency @springfield/ham-radio-api to ^16.2.0 ([57115dc](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/57115dc))
+
 ## <small>1.0.6 (2025-09-12)</small>
 
 * Merge branch 'renovate/pin-dependencies' into 'main' ([a7fd5ad](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/a7fd5ad))
