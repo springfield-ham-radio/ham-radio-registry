@@ -1,3 +1,7 @@
+## <small>1.0.8 (2025-09-14)</small>
+
+* fix(deps): update dependency @springfield/ham-radio-api to ^16.3.0 ([8caf7ad](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/8caf7ad))
+
 ## <small>1.0.7 (2025-09-13)</small>
 
 * fix(deps): update dependency @springfield/ham-radio-api to ^16.2.0 ([57115dc](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/57115dc))
