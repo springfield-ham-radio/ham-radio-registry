@@ -1,3 +1,16 @@
+## <small>1.0.9 (2025-10-29)</small>
+
+* Merge branch 'renovate/chai-6.x' into 'main' ([df2c254](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/df2c254))
+* Merge branch 'renovate/semantic-release-monorepo' into 'main' ([48ba6f4](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/48ba6f4))
+* Merge branch 'renovate/springfield-ham-radio-api-16.x' into 'main' ([9ee852f](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/9ee852f))
+* Merge branch 'renovate/tsx-4.x' into 'main' ([65f6d4a](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/65f6d4a))
+* Merge branch 'renovate/yarn-monorepo' into 'main' ([43e5ea2](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/43e5ea2))
+* fix(deps): update dependency @springfield/ham-radio-api to ^16.3.1 ([60d559b](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/60d559b))
+* chore(deps): update dependency @semantic-release/gitlab to v13.2.9 ([13611fd](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/13611fd))
+* chore(deps): update dependency chai to v6.2.0 ([b4c76f8](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/b4c76f8))
+* chore(deps): update dependency tsx to v4.20.6 ([09d6ad1](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/09d6ad1))
+* chore(deps): update yarn to v4.10.3 ([fcc80d6](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/fcc80d6))
+
 ## <small>1.0.8 (2025-09-14)</small>
 
 * fix(deps): update dependency @springfield/ham-radio-api to ^16.3.0 ([8caf7ad](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/8caf7ad))
