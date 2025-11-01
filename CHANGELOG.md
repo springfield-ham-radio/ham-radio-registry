@@ -1,3 +1,8 @@
+## <small>1.0.10 (2025-11-01)</small>
+
+* Merge branch 'renovate/loglayer-6.x' into 'main' ([6c49361](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/6c49361))
+* fix(deps): update dependency loglayer to ^6.10.0 ([24f070e](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/24f070e))
+
 ## <small>1.0.9 (2025-10-29)</small>
 
 * Merge branch 'renovate/chai-6.x' into 'main' ([df2c254](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/df2c254))

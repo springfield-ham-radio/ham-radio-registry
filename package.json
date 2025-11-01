@@ -1,6 +1,6 @@
 {
   "name": "@springfield/ham-radio-registry",
-  "version": "1.0.9",
+  "version": "1.0.10",
   "author": "Bryan Hunt",
   "license": "MIT",
   "packageManager": "yarn@4.10.3",
