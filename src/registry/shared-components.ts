@@ -64,17 +64,40 @@ export class DefaultSharedComponentManager implements SharedComponentManager {
   }
 
   resolveReference(reference: string, basePath: string): string {
-    // Handle relative paths
-    if (reference.startsWith('./') || reference.startsWith('../')) {
-      return join(basePath, reference);
+    // Handle absolute module paths (e.g., @scope/package/path)
+    if (reference.startsWith('@') || (!reference.startsWith('./') && !reference.startsWith('../') && !reference.startsWith('/'))) {
+      return reference;
     }
 
-    // Handle absolute paths
+    // Handle absolute file system paths
     if (reference.startsWith('/')) {
       return reference;
     }
 
-    // Default to relative path
+    // Handle relative paths - check if basePath is in node_modules
+    if (basePath.includes('node_modules')) {
+      // Extract module name from path
+      const nodeModulesIndex = basePath.indexOf('node_modules');
+      const afterNodeModules = basePath.substring(nodeModulesIndex + 'node_modules/'.length);
+      const pathParts = afterNodeModules.split('/');
+      
+      // Handle scoped packages (@scope/package) vs regular packages
+      const moduleName = pathParts[0] && pathParts[0].startsWith('@') && pathParts[1]
+        ? `${pathParts[0]}/${pathParts[1]}` 
+        : pathParts[0];
+      
+      // Resolve the reference relative to the module
+      // Remove leading ../ to get the path relative to module root
+      let relativePath = reference;
+
+      while (relativePath.startsWith('../')) {
+        relativePath = relativePath.substring(3);
+      }
+
+      return `${moduleName}/${relativePath}`;
+    }
+
+    // Default to file system path join for non-module paths
     return join(basePath, reference);
   }
 }
