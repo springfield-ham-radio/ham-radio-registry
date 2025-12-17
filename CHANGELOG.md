@@ -1,3 +1,7 @@
+## <small>1.0.12 (2025-12-17)</small>
+
+* fix: enhance reference resolution in DefaultSharedComponentManager ([9166eb4](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/9166eb4))
+
 ## <small>1.0.11 (2025-12-17)</small>
 
 * fix: update dependencies ([bd46658](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/bd46658))
