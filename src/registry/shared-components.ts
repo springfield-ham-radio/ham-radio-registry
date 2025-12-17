@@ -76,28 +76,34 @@ export class DefaultSharedComponentManager implements SharedComponentManager {
 
     // Handle relative paths - check if basePath is in node_modules
     if (basePath.includes('node_modules')) {
-      // Extract module name from path
-      const nodeModulesIndex = basePath.indexOf('node_modules');
-      const afterNodeModules = basePath.substring(nodeModulesIndex + 'node_modules/'.length);
-      const pathParts = afterNodeModules.split('/');
-      
-      // Handle scoped packages (@scope/package) vs regular packages
-      const moduleName = pathParts[0] && pathParts[0].startsWith('@') && pathParts[1]
-        ? `${pathParts[0]}/${pathParts[1]}` 
-        : pathParts[0];
-      
-      // Resolve the reference relative to the module
-      // Remove leading ../ to get the path relative to module root
-      let relativePath = reference;
+      // For JavaScript files (codecs), convert to module specifiers
+      // For other files (schemas, configs), use file system paths
+      const isJavaScriptFile = reference.endsWith('.js') || reference.endsWith('.mjs') || reference.endsWith('.ts');
 
-      while (relativePath.startsWith('../')) {
-        relativePath = relativePath.substring(3);
+      if (isJavaScriptFile) {
+        // Extract module name from path
+        const nodeModulesIndex = basePath.indexOf('node_modules');
+        const afterNodeModules = basePath.substring(nodeModulesIndex + 'node_modules/'.length);
+        const pathParts = afterNodeModules.split('/');
+        
+        // Handle scoped packages (@scope/package) vs regular packages
+        const moduleName = pathParts[0] && pathParts[0].startsWith('@') && pathParts[1]
+          ? `${pathParts[0]}/${pathParts[1]}` 
+          : pathParts[0];
+        
+        // Resolve the reference relative to the module
+        // Remove leading ../ to get the path relative to module root
+        let relativePath = reference;
+
+        while (relativePath.startsWith('../')) {
+          relativePath = relativePath.substring(3);
+        }
+
+        return `${moduleName}/${relativePath}`;
       }
-
-      return `${moduleName}/${relativePath}`;
     }
 
-    // Default to file system path join for non-module paths
+    // Default to file system path join for non-JS files and non-module paths
     return join(basePath, reference);
   }
 }
