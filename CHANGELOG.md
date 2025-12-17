@@ -1,3 +1,11 @@
+## <small>1.0.11 (2025-12-17)</small>
+
+* fix: update dependencies ([bd46658](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/bd46658))
+* Merge branch 'renovate/chai-6.x' into 'main' ([dc032d8](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/dc032d8))
+* Merge branch 'renovate/yarn-monorepo' into 'main' ([079d068](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/079d068))
+* chore(deps): update dependency chai to v6.2.1 ([659c58e](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/659c58e))
+* chore(deps): update yarn to v4.11.0 ([2b576cf](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/2b576cf))
+
 ## <small>1.0.10 (2025-11-01)</small>
 
 * Merge branch 'renovate/loglayer-6.x' into 'main' ([6c49361](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/6c49361))
