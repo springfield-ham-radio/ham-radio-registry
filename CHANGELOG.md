@@ -1,3 +1,9 @@
+## [1.0.15](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.0.14...v1.0.15) (2026-08-22)
+
+### Bug Fixes
+
+* bump ham-radio-api to ^17.0.0 for send/expect DSL ([64c5e62](https://github.com/springfield-ham-radio/ham-radio-registry/commit/64c5e62ba09809210b459fac3d480fb68f797904))
+
 ## [1.0.14](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.0.13...v1.0.14) (2026-08-22)
 
 ### Bug Fixes
