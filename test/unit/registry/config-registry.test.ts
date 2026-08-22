@@ -56,8 +56,8 @@ describe('NpmBasedConfigRegistry', () => {
           channels: { startAddress: 0, endAddress: 100 },
         },
       },
-      readMemory: [{ sendReceive: { send: [1], receive: { type: 'exact', value: 1, length: 1 }, description: 'desc' } }],
-      writeMemory: [{ sendReceive: { send: [1], receive: { type: 'exact', value: 1, length: 1 }, description: 'desc' } }],
+      readMemory: [{ description: 'desc', send: [1], expect: 1 }],
+      writeMemory: [{ description: 'desc', send: [1], expect: 1 }],
       settingsSchema: {
         model: RadioModelId('test-model'),
         settingsSchema: {},
