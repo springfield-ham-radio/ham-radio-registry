@@ -1,3 +1,9 @@
+## [1.0.14](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.0.13...v1.0.14) (2026-08-22)
+
+### Bug Fixes
+
+* migrate to TypeScript 7 and update dependencies ([7c833af](https://github.com/springfield-ham-radio/ham-radio-registry/commit/7c833af4b66728e6ba399c66c5df46f60d5773ba))
+
 ## <small>1.0.13 (2025-12-17)</small>
 
 * fix: refine reference resolution for JavaScript files in DefaultSharedComponentManager ([0038dd5](https://gitlab.com/springfield-ham-radio/app/ham-radio-registry/commit/0038dd5))
