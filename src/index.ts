@@ -4,6 +4,8 @@ export type {
   RadioCapabilities,
   CodecConfig,
   RegistryRadio,
+  RadioCatalogEntry,
+  RadioCatalogSource,
 } from './types/radio-config.js';
 
 // Re-export common types from ham-radio-api
@@ -20,19 +22,11 @@ export type {
   PluginSecurity,
 } from './types/plugin-module.js';
 
-// Registry components
-export type { RadioConfigRegistry } from './registry/config-registry.js';
-import { NpmBasedConfigRegistry, type RadioConfigRegistry } from './registry/config-registry.js';
-
-// Shared components
-export type { SharedComponentManager } from '@springfield/ham-radio-api';
-export { DefaultSharedComponentManager } from './registry/shared-components.js';
-
-// NPM client
-export type { NpmClient } from './utils/npm-client.js';
-export { DefaultNpmClient } from './utils/npm-client.js';
-
-// Factory function for creating registry instances
-export function createRegistry(logger: any): RadioConfigRegistry {
-  return new NpmBasedConfigRegistry(logger);
-}
+// Browser-safe catalog API (no node:fs)
+export {
+  hydrateRadioConfig,
+  extractCatalogMetadata,
+  validateConfiguration,
+  computeContentHash,
+  hashRadioConfig,
+} from './catalog/index.js';

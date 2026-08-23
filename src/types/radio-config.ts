@@ -13,14 +13,13 @@ export interface RadioConfigMetadata {
 }
 
 /**
- * Radio capabilities
+ * Radio capabilities (matches radio-module JSON configs)
  */
 export interface RadioCapabilities {
-  dslProtocols: boolean;
-  customCodecs: boolean;
   memoryRead: boolean;
   memoryWrite: boolean;
-  sharedComponents: boolean;
+  channelProgramming: boolean;
+  settingsProgramming: boolean;
 }
 
 /**
@@ -40,4 +39,23 @@ export interface RegistryRadio extends Radio {
   capabilities: RadioCapabilities;
   codec?: CodecConfig;
   metadata: RadioConfigMetadata;
+}
+
+/**
+ * Source of a catalogued radio configuration
+ */
+export type RadioCatalogSource = 'bundled' | 'user';
+
+/**
+ * Lightweight catalog metadata for listing radios (e.g. import dialog)
+ */
+export interface RadioCatalogEntry {
+  modelId: string;
+  name: string;
+  manufacturer: string;
+  version: string;
+  description: string;
+  capabilities: RadioCapabilities;
+  source: RadioCatalogSource;
+  contentHash: string;
 }

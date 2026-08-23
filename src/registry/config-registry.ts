@@ -5,6 +5,7 @@ import { DefaultSharedComponentManager } from './shared-components.js';
 import type { ILogLayer } from 'loglayer';
 import type { PluginModule } from '../types/plugin-module.js';
 import type { RegistryRadio } from '../types/radio-config.js';
+import { validateConfiguration as validateRadioConfiguration } from '../catalog/validate-configuration.js';
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 
@@ -116,40 +117,7 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
   }
 
   validateConfiguration(config: RegistryRadio): ValidationResult {
-    const errors: string[] = [];
-    const warnings: string[] = [];
-
-    // Basic validation
-    if (!config.id?.model) {
-      errors.push('Configuration must have a valid model ID');
-    }
-
-    if (!config.serialConfig) {
-      errors.push('Configuration must have serial configuration');
-    }
-
-    if (!config.memoryConfig) {
-      errors.push('Configuration must have memory configuration');
-    }
-
-    if (!config.readMemory || config.readMemory.length === 0) {
-      errors.push('Configuration must have read memory protocol');
-    }
-
-    if (!config.writeMemory || config.writeMemory.length === 0) {
-      errors.push('Configuration must have write memory protocol');
-    }
-
-    // Schema validation
-    if (!config.settingsSchema) {
-      errors.push('Configuration must have settings schema');
-    }
-
-    return {
-      errors,
-      isValid: errors.length === 0,
-      warnings,
-    };
+    return validateRadioConfiguration(config);
   }
 
   async registerConfiguration(config: RegistryRadio): Promise<void> {
