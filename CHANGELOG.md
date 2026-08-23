@@ -1,3 +1,9 @@
+## [1.1.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.0.16...v1.1.0) (2026-08-23)
+
+### Features
+
+* add browser-safe radio catalog hydrate API ([3f63e73](https://github.com/springfield-ham-radio/ham-radio-registry/commit/3f63e736efda0c8b90dc7567470e71e3e3961e6c))
+
 ## [1.0.16](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.0.15...v1.0.16) (2026-08-23)
 
 ### Bug Fixes
