@@ -1,5 +1,6 @@
 import { DefaultNpmClient, type NpmClient } from '../utils/npm-client.js';
-import type { RadioCodec, RadioModelId, SharedComponentManager, ValidationResult } from '@springfield/ham-radio-api';
+import type { RadioCodec, RadioMemoryMap, RadioModelId, SharedComponentManager, ValidationResult } from '@springfield/ham-radio-api';
+import { createMemoryMapCodec } from '@springfield/ham-radio-utils';
 import { readFile, readdir } from 'node:fs/promises';
 import { DefaultSharedComponentManager } from './shared-components.js';
 import type { ILogLayer } from 'loglayer';
@@ -158,7 +159,7 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
 
     // Find configuration for this model
     const config = await this.getConfiguration(modelId);
-    if (!config || !config.codec) {
+    if (!config) {
       return undefined;
     }
 
@@ -341,9 +342,29 @@ export class NpmBasedConfigRegistry implements RadioConfigRegistry {
       const schemaPath = this.sharedComponentManager.resolveReference(config.settingsSchema.channelSchema.$ref as string, plugin.configPath);
       config.settingsSchema.channelSchema = await this.sharedComponentManager.loadSchema(schemaPath);
     }
+
+    if (config.memoryMap && typeof config.memoryMap === 'object' && '$ref' in config.memoryMap) {
+      const memoryMapPath = this.sharedComponentManager.resolveReference(config.memoryMap.$ref as string, plugin.configPath);
+      config.memoryMap = (await this.sharedComponentManager.loadSchema(memoryMapPath)) as unknown as RadioMemoryMap;
+    }
   }
 
   private async loadCodecFromConfig(config: RegistryRadio): Promise<RadioCodec | undefined> {
+    const memoryMap = config.memoryMap;
+    const usesMemoryMap =
+      !config.codec ||
+      config.codec.type === 'memoryMap' ||
+      (config.codec.type !== 'shared' && memoryMap !== undefined && !('$ref' in (memoryMap as object)));
+
+    if (usesMemoryMap && memoryMap && typeof memoryMap === 'object' && !('$ref' in memoryMap)) {
+      return createMemoryMapCodec({
+        radioModel: config.id.model,
+        memoryMap,
+        memoryConfig: config.memoryConfig,
+        logger: this.logger,
+      });
+    }
+
     if (!config.codec || config.codec.type !== 'shared' || !config.codec.reference) {
       return undefined;
     }

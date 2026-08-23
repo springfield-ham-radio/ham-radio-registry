@@ -26,7 +26,7 @@ export interface RadioCapabilities {
  * Codec configuration
  */
 export interface CodecConfig {
-  type: 'shared' | 'inline';
+  type: 'shared' | 'inline' | 'memoryMap';
   reference?: string;
   config?: Record<string, unknown>;
 }
