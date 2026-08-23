@@ -1,3 +1,9 @@
+## [1.2.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.1.0...v1.2.0) (2026-08-23)
+
+### Features
+
+* support memoryMap codec without radio-specific TypeScript ([1433466](https://github.com/springfield-ham-radio/ham-radio-registry/commit/14334666e5a2b1df0da59ff2c02fbc785ae0ed14))
+
 ## [1.1.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.0.16...v1.1.0) (2026-08-23)
 
 ### Features
