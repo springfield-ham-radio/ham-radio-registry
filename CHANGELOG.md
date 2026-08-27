@@ -1,3 +1,9 @@
+## [1.3.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.2.0...v1.3.0) (2026-08-27)
+
+### Features
+
+* add official module catalog API and installed catalog source ([f865d41](https://github.com/springfield-ham-radio/ham-radio-registry/commit/f865d419d4e1d4a34534d713510eb544ffd823e8))
+
 ## [1.2.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.1.0...v1.2.0) (2026-08-23)
 
 ### Features
