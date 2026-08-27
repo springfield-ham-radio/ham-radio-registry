@@ -44,7 +44,7 @@ export interface RegistryRadio extends Radio {
 /**
  * Source of a catalogued radio configuration
  */
-export type RadioCatalogSource = 'bundled' | 'user';
+export type RadioCatalogSource = 'bundled' | 'installed' | 'user';
 
 /**
  * Lightweight catalog metadata for listing radios (e.g. import dialog)

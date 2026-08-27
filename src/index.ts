@@ -8,6 +8,12 @@ export type {
   RadioCatalogSource,
 } from './types/radio-config.js';
 
+export type {
+  RadioModuleCatalog,
+  RadioModuleCatalogEntry,
+  CatalogValidationResult,
+} from './types/module-catalog.js';
+
 // Re-export common types from ham-radio-api
 export type { ValidationResult } from '@springfield/ham-radio-api';
 
@@ -29,4 +35,10 @@ export {
   validateConfiguration,
   computeContentHash,
   hashRadioConfig,
+  validateModuleCatalog,
+  parseModuleCatalog,
+  compareSemver,
+  isApiVersionCompatible,
+  normalizeIntegrity,
+  integrityFromSha256Hex,
 } from './catalog/index.js';
