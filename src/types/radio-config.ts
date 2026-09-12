@@ -20,6 +20,21 @@ export interface RadioCapabilities {
   memoryWrite: boolean;
   channelProgramming: boolean;
   settingsProgramming: boolean;
+  /**
+   * Live VFO / mode / PTT on the programming PC port.
+   * Independent of memory protocol: a radio may clone EEPROM and still speak CAT.
+   */
+  liveControl: boolean;
+}
+
+/**
+ * How live control talks on the PC port. Present when `capabilities.liveControl` is true.
+ */
+export interface RadioCatConfig {
+  /** Command family, for example `kenwood`. */
+  protocol: string;
+  /** Protocol-specific dialect, for example Kenwood `th-f6` or `fm-mobile`. */
+  dialect?: string;
 }
 
 /**
@@ -37,6 +52,7 @@ export interface CodecConfig {
 export interface RegistryRadio extends Radio {
   $schema?: string;
   capabilities: RadioCapabilities;
+  cat?: RadioCatConfig;
   codec?: CodecConfig;
   metadata: RadioConfigMetadata;
 }

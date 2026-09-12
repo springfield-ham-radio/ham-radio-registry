@@ -2,6 +2,7 @@
 export type {
   RadioConfigMetadata,
   RadioCapabilities,
+  RadioCatConfig,
   CodecConfig,
   RegistryRadio,
   RadioCatalogEntry,

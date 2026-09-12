@@ -135,8 +135,20 @@ describe('extractCatalogMetadata', () => {
     expect(entry.version).to.equal('1.0.0');
     expect(entry.source).to.equal('bundled');
     expect(entry.capabilities.memoryRead).to.be.true;
+    expect(entry.capabilities.liveControl).to.be.false;
     expect(entry.contentHash).to.equal(hashRadioConfig(radio));
     expect(entry.contentHash).to.match(/^[0-9a-f]{8}$/);
+  });
+
+  it('should copy liveControl when the radio declares it', () => {
+    const raw = baofengShapedConfig();
+    (raw.capabilities as Record<string, boolean>).liveControl = true;
+    raw.cat = { protocol: 'kenwood', dialect: 'fm-mobile' };
+    const radio = hydrateRadioConfig(raw, documentsByRef);
+    const entry = extractCatalogMetadata(radio, 'bundled');
+
+    expect(entry.capabilities.liveControl).to.be.true;
+    expect(radio.cat).to.deep.equal({ protocol: 'kenwood', dialect: 'fm-mobile' });
   });
 
   it('should use RadioModelId-compatible model strings', () => {

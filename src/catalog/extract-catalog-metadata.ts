@@ -6,6 +6,7 @@ const DEFAULT_CAPABILITIES: RadioCapabilities = {
   memoryWrite: false,
   channelProgramming: false,
   settingsProgramming: false,
+  liveControl: false,
 };
 
 /**
@@ -21,6 +22,7 @@ export function extractCatalogMetadata(
     memoryWrite: radio.capabilities?.memoryWrite ?? DEFAULT_CAPABILITIES.memoryWrite,
     channelProgramming: radio.capabilities?.channelProgramming ?? DEFAULT_CAPABILITIES.channelProgramming,
     settingsProgramming: radio.capabilities?.settingsProgramming ?? DEFAULT_CAPABILITIES.settingsProgramming,
+    liveControl: radio.capabilities?.liveControl ?? DEFAULT_CAPABILITIES.liveControl,
   };
 
   return {

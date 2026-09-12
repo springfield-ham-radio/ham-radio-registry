@@ -43,6 +43,7 @@ describe('NpmBasedConfigRegistry', () => {
         memoryWrite: true,
         channelProgramming: true,
         settingsProgramming: true,
+        liveControl: false,
       },
       serialConfig: {
         baudRate: 9600,
