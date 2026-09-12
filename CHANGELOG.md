@@ -1,3 +1,9 @@
+## [1.4.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.3.0...v1.4.0) (2026-09-12)
+
+### Features
+
+* add liveControl and cat config to radio capabilities ([64ee400](https://github.com/springfield-ham-radio/ham-radio-registry/commit/64ee400992ed4b8e19fc6ecde14eb0b247a96b90))
+
 ## [1.3.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.2.0...v1.3.0) (2026-08-27)
 
 ### Features
