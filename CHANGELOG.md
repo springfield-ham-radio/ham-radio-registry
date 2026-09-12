@@ -1,3 +1,9 @@
+## [1.5.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.4.0...v1.5.0) (2026-09-12)
+
+### Features
+
+* expand RadioCatConfig with Kenwood session fields ([9fc275f](https://github.com/springfield-ham-radio/ham-radio-registry/commit/9fc275f86923bea879d5228ee3ab55c31f82ed37))
+
 ## [1.4.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.3.0...v1.4.0) (2026-09-12)
 
 ### Features
