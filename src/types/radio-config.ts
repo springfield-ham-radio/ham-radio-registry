@@ -29,12 +29,36 @@ export interface RadioCapabilities {
 
 /**
  * How live control talks on the PC port. Present when `capabilities.liveControl` is true.
+ *
+ * Kenwood command layout, mode names, and power labels belong here so HamBench
+ * does not special-case radio models.
  */
 export interface RadioCatConfig {
   /** Command family, for example `kenwood`. */
   protocol: string;
-  /** Protocol-specific dialect, for example Kenwood `th-f6` or `fm-mobile`. */
-  dialect?: string;
+  /** Send a wake CR and discard buffered replies before `ID`. */
+  wakeCr?: boolean;
+  /** How many VFOs to poll. Default 1. */
+  vfoCount?: number;
+  /** Frequency commands to try in order, for example `["FQ","FO"]` or `["FO"]`. */
+  frequencyCommands?: string[];
+  /** Digit width of the frequency field. Kenwood handhelds use 11; TM-D710 `FO` uses 10. */
+  frequencyWidth?: number;
+  /**
+   * When true, the frequency command is a multi-field VFO channel (`FO n` → 13 fields).
+   * Mode is the last field. There is no separate `MD` command.
+   */
+  vfoChannel?: boolean;
+  /** Mode names in CAT code order. */
+  modes?: string[];
+  /** Power names in CAT code order, as shown on the radio. */
+  powers?: string[];
+  /** Separate mode command, for example `MD`. Omit when `vfoChannel` is true. */
+  modeCommand?: string;
+  /** Pass the band index to `PC` (`PC n` / `PC n,x`). */
+  powerBandIndex?: boolean;
+  /** Read `BC` (no args) for CTRL/PTT band. */
+  bandControl?: boolean;
 }
 
 /**

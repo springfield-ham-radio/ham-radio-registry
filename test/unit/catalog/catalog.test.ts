@@ -143,12 +143,12 @@ describe('extractCatalogMetadata', () => {
   it('should copy liveControl when the radio declares it', () => {
     const raw = baofengShapedConfig();
     (raw.capabilities as Record<string, boolean>).liveControl = true;
-    raw.cat = { protocol: 'kenwood', dialect: 'fm-mobile' };
+    raw.cat = { protocol: 'kenwood', vfoCount: 2, powers: ['High', 'Medium', 'Low'] };
     const radio = hydrateRadioConfig(raw, documentsByRef);
     const entry = extractCatalogMetadata(radio, 'bundled');
 
     expect(entry.capabilities.liveControl).to.be.true;
-    expect(radio.cat).to.deep.equal({ protocol: 'kenwood', dialect: 'fm-mobile' });
+    expect(radio.cat).to.deep.equal({ protocol: 'kenwood', vfoCount: 2, powers: ['High', 'Medium', 'Low'] });
   });
 
   it('should use RadioModelId-compatible model strings', () => {
