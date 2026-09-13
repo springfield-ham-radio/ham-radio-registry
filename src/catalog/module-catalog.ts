@@ -122,41 +122,43 @@ function validateModuleEntry(entry: unknown, index: number, errors: string[]): R
     errors.push(`${prefix}.version is required`);
   }
 
-  const hasRadios = Array.isArray(entry.radios);
-  const hasSupportedRadios = Array.isArray(entry.supportedRadios);
+  const radiosValue = entry.radios;
+  const supportedRadiosValue = entry.supportedRadios;
+  const hasRadios = Array.isArray(radiosValue);
+  const hasSupportedRadios = Array.isArray(supportedRadiosValue);
   let radios: RadioModuleCatalogRadio[] = [];
   let supportedRadios: string[] = [];
 
   if (hasRadios) {
-    if (entry.radios.length === 0) {
+    if (radiosValue.length === 0) {
       errors.push(`${prefix}.radios must be a non-empty array`);
     } else {
       const seenModelIds = new Set<string>();
       const seenConfigs = new Set<string>();
 
-      radios = entry.radios
-        .map((radio, radioIndex) =>
+      radios = radiosValue
+        .map((radio: unknown, radioIndex: number) =>
           validateCatalogRadio(radio, `${prefix}.radios[${radioIndex}]`, errors, seenModelIds, seenConfigs),
         )
-        .filter((radio): radio is RadioModuleCatalogRadio => radio !== undefined);
+        .filter((radio: RadioModuleCatalogRadio | undefined): radio is RadioModuleCatalogRadio => radio !== undefined);
     }
 
     supportedRadios = radios.map((radio) => radio.modelId);
 
     if (hasSupportedRadios) {
-      if (entry.supportedRadios.length === 0 || !entry.supportedRadios.every((radio) => isNonEmptyString(radio))) {
+      if (supportedRadiosValue.length === 0 || !supportedRadiosValue.every((radio: unknown) => isNonEmptyString(radio))) {
         errors.push(`${prefix}.supportedRadios must contain only non-empty strings`);
-      } else if (!sameStringSet(entry.supportedRadios as string[], supportedRadios)) {
+      } else if (!sameStringSet(supportedRadiosValue.filter(isNonEmptyString), supportedRadios)) {
         errors.push(`${prefix}.supportedRadios must match radios[].modelId`);
       }
     }
   } else if (hasSupportedRadios) {
-    if (entry.supportedRadios.length === 0) {
+    if (supportedRadiosValue.length === 0) {
       errors.push(`${prefix}.supportedRadios must be a non-empty array`);
-    } else if (!entry.supportedRadios.every((radio) => isNonEmptyString(radio))) {
+    } else if (!supportedRadiosValue.every((radio: unknown) => isNonEmptyString(radio))) {
       errors.push(`${prefix}.supportedRadios must contain only non-empty strings`);
     } else {
-      supportedRadios = entry.supportedRadios as string[];
+      supportedRadios = supportedRadiosValue.filter(isNonEmptyString);
       radios = radiosFromSupportedRadios(supportedRadios);
     }
   } else {
