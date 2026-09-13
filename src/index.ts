@@ -12,6 +12,7 @@ export type {
 export type {
   RadioModuleCatalog,
   RadioModuleCatalogEntry,
+  RadioModuleCatalogRadio,
   CatalogValidationResult,
 } from './types/module-catalog.js';
 

@@ -1,7 +1,13 @@
-import type { CatalogValidationResult, RadioModuleCatalog, RadioModuleCatalogEntry } from '../types/module-catalog.js';
+import type {
+  CatalogValidationResult,
+  RadioModuleCatalog,
+  RadioModuleCatalogEntry,
+  RadioModuleCatalogRadio,
+} from '../types/module-catalog.js';
 
 const INTEGRITY_PATTERN = /^sha256:[a-fA-F0-9]{64}$/;
-const SUPPORTED_SCHEMA_VERSION = 1;
+const CONFIG_PATH_PATTERN = /^configs\/[^/]+\.json$/;
+const SUPPORTED_SCHEMA_VERSIONS = new Set([1, 2]);
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -18,6 +24,78 @@ function isHttpsUrl(value: string): boolean {
   } catch {
     return false;
   }
+}
+
+function sameStringSet(left: string[], right: string[]): boolean {
+  if (left.length !== right.length) {
+    return false;
+  }
+
+  const rightSet = new Set(right);
+  return left.every((value) => rightSet.has(value));
+}
+
+function validateCatalogRadio(
+  value: unknown,
+  prefix: string,
+  errors: string[],
+  seenModelIds: Set<string>,
+  seenConfigs: Set<string>,
+): RadioModuleCatalogRadio | undefined {
+  if (!isRecord(value)) {
+    errors.push(`${prefix} must be an object`);
+    return undefined;
+  }
+
+  if (!isNonEmptyString(value.modelId)) {
+    errors.push(`${prefix}.modelId is required`);
+  }
+
+  if (!isNonEmptyString(value.name)) {
+    errors.push(`${prefix}.name is required`);
+  }
+
+  if (value.config !== undefined) {
+    if (!isNonEmptyString(value.config) || !CONFIG_PATH_PATTERN.test(value.config)) {
+      errors.push(`${prefix}.config must be a configs/*.json path`);
+    }
+  }
+
+  if (errors.some((error) => error.startsWith(prefix))) {
+    return undefined;
+  }
+
+  const modelId = value.modelId as string;
+  const config = typeof value.config === 'string' ? value.config : undefined;
+
+  if (seenModelIds.has(modelId)) {
+    errors.push(`${prefix}.modelId is duplicated: ${modelId}`);
+    return undefined;
+  }
+
+  seenModelIds.add(modelId);
+
+  if (config) {
+    if (seenConfigs.has(config)) {
+      errors.push(`${prefix}.config is duplicated: ${config}`);
+      return undefined;
+    }
+
+    seenConfigs.add(config);
+  }
+
+  return {
+    modelId,
+    name: value.name as string,
+    ...(config ? { config } : {}),
+  };
+}
+
+function radiosFromSupportedRadios(supportedRadios: string[]): RadioModuleCatalogRadio[] {
+  return supportedRadios.map((modelId) => ({
+    modelId,
+    name: modelId,
+  }));
 }
 
 function validateModuleEntry(entry: unknown, index: number, errors: string[]): RadioModuleCatalogEntry | undefined {
@@ -44,10 +122,45 @@ function validateModuleEntry(entry: unknown, index: number, errors: string[]): R
     errors.push(`${prefix}.version is required`);
   }
 
-  if (!Array.isArray(entry.supportedRadios) || entry.supportedRadios.length === 0) {
-    errors.push(`${prefix}.supportedRadios must be a non-empty array`);
-  } else if (!entry.supportedRadios.every((radio) => isNonEmptyString(radio))) {
-    errors.push(`${prefix}.supportedRadios must contain only non-empty strings`);
+  const hasRadios = Array.isArray(entry.radios);
+  const hasSupportedRadios = Array.isArray(entry.supportedRadios);
+  let radios: RadioModuleCatalogRadio[] = [];
+  let supportedRadios: string[] = [];
+
+  if (hasRadios) {
+    if (entry.radios.length === 0) {
+      errors.push(`${prefix}.radios must be a non-empty array`);
+    } else {
+      const seenModelIds = new Set<string>();
+      const seenConfigs = new Set<string>();
+
+      radios = entry.radios
+        .map((radio, radioIndex) =>
+          validateCatalogRadio(radio, `${prefix}.radios[${radioIndex}]`, errors, seenModelIds, seenConfigs),
+        )
+        .filter((radio): radio is RadioModuleCatalogRadio => radio !== undefined);
+    }
+
+    supportedRadios = radios.map((radio) => radio.modelId);
+
+    if (hasSupportedRadios) {
+      if (entry.supportedRadios.length === 0 || !entry.supportedRadios.every((radio) => isNonEmptyString(radio))) {
+        errors.push(`${prefix}.supportedRadios must contain only non-empty strings`);
+      } else if (!sameStringSet(entry.supportedRadios as string[], supportedRadios)) {
+        errors.push(`${prefix}.supportedRadios must match radios[].modelId`);
+      }
+    }
+  } else if (hasSupportedRadios) {
+    if (entry.supportedRadios.length === 0) {
+      errors.push(`${prefix}.supportedRadios must be a non-empty array`);
+    } else if (!entry.supportedRadios.every((radio) => isNonEmptyString(radio))) {
+      errors.push(`${prefix}.supportedRadios must contain only non-empty strings`);
+    } else {
+      supportedRadios = entry.supportedRadios as string[];
+      radios = radiosFromSupportedRadios(supportedRadios);
+    }
+  } else {
+    errors.push(`${prefix}.radios must be a non-empty array`);
   }
 
   if (!isNonEmptyString(entry.minApiVersion)) {
@@ -76,7 +189,8 @@ function validateModuleEntry(entry: unknown, index: number, errors: string[]): R
     manufacturer: entry.manufacturer as string,
     ...(typeof entry.description === 'string' ? { description: entry.description } : {}),
     version: entry.version as string,
-    supportedRadios: entry.supportedRadios as string[],
+    radios,
+    supportedRadios,
     minApiVersion: entry.minApiVersion as string,
     downloadUrl: entry.downloadUrl as string,
     integrity: (entry.integrity as string).toLowerCase(),
@@ -94,8 +208,8 @@ export function validateModuleCatalog(value: unknown): CatalogValidationResult &
     return { isValid: false, errors: ['Catalog must be a JSON object'], warnings };
   }
 
-  if (value.schemaVersion !== SUPPORTED_SCHEMA_VERSION) {
-    errors.push(`Unsupported schemaVersion: expected ${SUPPORTED_SCHEMA_VERSION}`);
+  if (typeof value.schemaVersion !== 'number' || !SUPPORTED_SCHEMA_VERSIONS.has(value.schemaVersion)) {
+    errors.push(`Unsupported schemaVersion: expected ${[...SUPPORTED_SCHEMA_VERSIONS].join(' or ')}`);
   }
 
   if (!Array.isArray(value.modules)) {
@@ -131,7 +245,7 @@ export function validateModuleCatalog(value: unknown): CatalogValidationResult &
     errors,
     warnings,
     catalog: {
-      schemaVersion: SUPPORTED_SCHEMA_VERSION,
+      schemaVersion: value.schemaVersion as number,
       modules,
     },
   };
