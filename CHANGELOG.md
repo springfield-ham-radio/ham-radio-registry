@@ -1,3 +1,14 @@
+## [1.6.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.5.0...v1.6.0) (2026-09-13)
+
+### Features
+
+* list catalog radios from zip configs ([4525d71](https://github.com/springfield-ham-radio/ham-radio-registry/commit/4525d719a7cb92a21baf1b2b63f3cf5794a964b7))
+
+### Bug Fixes
+
+* type catalog radios after Array.isArray narrowing ([907f79f](https://github.com/springfield-ham-radio/ham-radio-registry/commit/907f79fe444541802c8a5e5551b571a816c8b1f5))
+* update [@springfield](https://github.com/springfield) packages to API 17.8.0 and utils 4.11.0 ([7eb3e20](https://github.com/springfield-ham-radio/ham-radio-registry/commit/7eb3e203475e42f519be819f9b034ec2a6f41400))
+
 ## [1.5.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.4.0...v1.5.0) (2026-09-12)
 
 ### Features
