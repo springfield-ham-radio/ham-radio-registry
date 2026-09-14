@@ -1,3 +1,9 @@
+## [1.6.1](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.6.0...v1.6.1) (2026-09-14)
+
+### Bug Fixes
+
+* update [@springfield](https://github.com/springfield) packages to API 17.9.0 and utils 4.12.0 ([9379e60](https://github.com/springfield-ham-radio/ham-radio-registry/commit/9379e60a46cb6b36c46d8dbc059c43f0a30f110e))
+
 ## [1.6.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.5.0...v1.6.0) (2026-09-13)
 
 ### Features
