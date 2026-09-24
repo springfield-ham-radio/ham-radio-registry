@@ -1,5 +1,4 @@
-import { describe, it } from 'node:test';
-import { expect } from 'chai';
+import { describe, expect, it } from 'vitest';
 import {
   compareSemver,
   isApiVersionCompatible,
@@ -53,25 +52,25 @@ describe('module catalog', () => {
   it('should parse a catalog that lists real zip configs', () => {
     const catalog = parseModuleCatalog(JSON.stringify(sampleCatalog));
 
-    expect(catalog.schemaVersion).to.equal(1);
-    expect(catalog.modules).to.have.length(1);
-    expect(catalog.modules[0]?.id).to.equal('baofeng');
-    expect(catalog.modules[0]?.radios).to.deep.equal([
+    expect(catalog.schemaVersion).toBe(1);
+    expect(catalog.modules).toHaveLength(1);
+    expect(catalog.modules[0]?.id).toBe('baofeng');
+    expect(catalog.modules[0]?.radios).toEqual([
       {
         modelId: 'baofeng-uv5r',
         name: 'Baofeng UV-5R',
         config: 'configs/baofeng-uv5r.json',
       },
     ]);
-    expect(catalog.modules[0]?.supportedRadios).to.deep.equal(['baofeng-uv5r']);
-    expect(catalog.modules[0]?.integrity).to.match(/^sha256:[a-f0-9]{64}$/);
+    expect(catalog.modules[0]?.supportedRadios).toEqual(['baofeng-uv5r']);
+    expect(catalog.modules[0]?.integrity).toMatch(/^sha256:[a-f0-9]{64}$/);
   });
 
   it('should derive radios from legacy supportedRadios', () => {
     const catalog = parseModuleCatalog(JSON.stringify(legacyCatalog));
 
-    expect(catalog.modules[0]?.supportedRadios).to.deep.equal(['uv5r', 'uv5r-plus']);
-    expect(catalog.modules[0]?.radios).to.deep.equal([
+    expect(catalog.modules[0]?.supportedRadios).toEqual(['uv5r', 'uv5r-plus']);
+    expect(catalog.modules[0]?.radios).toEqual([
       { modelId: 'uv5r', name: 'uv5r' },
       { modelId: 'uv5r-plus', name: 'uv5r-plus' },
     ]);
@@ -91,7 +90,7 @@ describe('module catalog', () => {
 
     const catalog = parseModuleCatalog(JSON.stringify(withoutSupported));
 
-    expect(catalog.modules[0]?.supportedRadios).to.deep.equal(['baofeng-uv5r']);
+    expect(catalog.modules[0]?.supportedRadios).toEqual(['baofeng-uv5r']);
   });
 
   it('should reject radios that do not match supportedRadios', () => {
@@ -105,21 +104,21 @@ describe('module catalog', () => {
       ],
     });
 
-    expect(result.isValid).to.be.false;
-    expect(result.errors.join(' ')).to.include('supportedRadios must match radios[].modelId');
+    expect(result.isValid).toBe(false);
+    expect(result.errors.join(' ')).toContain('supportedRadios must match radios[].modelId');
   });
 
   it('should reject invalid catalogs', () => {
     const result = validateModuleCatalog({ schemaVersion: 99, modules: [] });
 
-    expect(result.isValid).to.be.false;
-    expect(result.errors.join(' ')).to.include('schemaVersion');
+    expect(result.isValid).toBe(false);
+    expect(result.errors.join(' ')).toContain('schemaVersion');
   });
 
   it('should compare api versions', () => {
-    expect(compareSemver('17.3.0', '17.3.0')).to.equal(0);
-    expect(isApiVersionCompatible('17.3.0', '17.3.0')).to.be.true;
-    expect(isApiVersionCompatible('17.2.0', '17.3.0')).to.be.false;
-    expect(isApiVersionCompatible('18.0.0', '17.3.0')).to.be.true;
+    expect(compareSemver('17.3.0', '17.3.0')).toBe(0);
+    expect(isApiVersionCompatible('17.3.0', '17.3.0')).toBe(true);
+    expect(isApiVersionCompatible('17.2.0', '17.3.0')).toBe(false);
+    expect(isApiVersionCompatible('18.0.0', '17.3.0')).toBe(true);
   });
 });

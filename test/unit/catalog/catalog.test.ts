@@ -1,5 +1,4 @@
-import { describe, it } from 'node:test';
-import { expect } from 'chai';
+import { describe, expect, it } from 'vitest';
 import { RadioModelId } from '@springfield/ham-radio-api';
 import {
   extractCatalogMetadata,
@@ -91,36 +90,36 @@ describe('hydrateRadioConfig', () => {
   it('should inline schema and memoryMap $ref documents', () => {
     const radio = hydrateRadioConfig(baofengShapedConfig(), documentsByRef);
 
-    expect(radio.id.model).to.equal('baofeng-uv5r');
-    expect(radio.settingsSchema.settingsSchema).to.deep.equal(settingsSchemaDoc);
-    expect(radio.settingsSchema.channelSchema).to.deep.equal(channelSchemaDoc);
-    expect(radio.memoryMap).to.deep.equal(memoryMapDoc);
-    expect(radio.metadata.author).to.equal('Springfield Ham Radio');
-    expect(radio.metadata.moduleId).to.equal('');
+    expect(radio.id.model).toBe('baofeng-uv5r');
+    expect(radio.settingsSchema.settingsSchema).toEqual(settingsSchemaDoc);
+    expect(radio.settingsSchema.channelSchema).toEqual(channelSchemaDoc);
+    expect(radio.memoryMap).toEqual(memoryMapDoc);
+    expect(radio.metadata.author).toBe('Springfield Ham Radio');
+    expect(radio.metadata.moduleId).toBe('');
   });
 
   it('should accept JSON text', () => {
     const radio = hydrateRadioConfig(JSON.stringify(baofengShapedConfig()), documentsByRef);
-    expect(radio.id.name).to.equal('Baofeng UV-5R');
+    expect(radio.id.name).toBe('Baofeng UV-5R');
   });
 
   it('should throw when a $ref document is missing', () => {
-    expect(() => hydrateRadioConfig(baofengShapedConfig(), {})).to.throw(/Missing document for \$ref/);
+    expect(() => hydrateRadioConfig(baofengShapedConfig(), {})).toThrow(/Missing document for \$ref/);
   });
 });
 
 describe('validateConfiguration', () => {
   it('should reject an empty configuration', () => {
     const result = validateConfiguration({} as RegistryRadio);
-    expect(result.isValid).to.be.false;
-    expect(result.errors).to.include('Configuration must have a valid model ID');
+    expect(result.isValid).toBe(false);
+    expect(result.errors).toContain('Configuration must have a valid model ID');
   });
 
   it('should accept a hydrated Baofeng-shaped configuration', () => {
     const radio = hydrateRadioConfig(baofengShapedConfig(), documentsByRef);
     const result = validateConfiguration(radio);
-    expect(result.isValid).to.be.true;
-    expect(result.errors).to.be.empty;
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
   });
 });
 
@@ -129,15 +128,15 @@ describe('extractCatalogMetadata', () => {
     const radio = hydrateRadioConfig(baofengShapedConfig(), documentsByRef);
     const entry = extractCatalogMetadata(radio, 'bundled');
 
-    expect(entry.modelId).to.equal('baofeng-uv5r');
-    expect(entry.name).to.equal('Baofeng UV-5R');
-    expect(entry.manufacturer).to.equal('Baofeng');
-    expect(entry.version).to.equal('1.0.0');
-    expect(entry.source).to.equal('bundled');
-    expect(entry.capabilities.memoryRead).to.be.true;
-    expect(entry.capabilities.liveControl).to.be.false;
-    expect(entry.contentHash).to.equal(hashRadioConfig(radio));
-    expect(entry.contentHash).to.match(/^[0-9a-f]{8}$/);
+    expect(entry.modelId).toBe('baofeng-uv5r');
+    expect(entry.name).toBe('Baofeng UV-5R');
+    expect(entry.manufacturer).toBe('Baofeng');
+    expect(entry.version).toBe('1.0.0');
+    expect(entry.source).toBe('bundled');
+    expect(entry.capabilities.memoryRead).toBe(true);
+    expect(entry.capabilities.liveControl).toBe(false);
+    expect(entry.contentHash).toBe(hashRadioConfig(radio));
+    expect(entry.contentHash).toMatch(/^[0-9a-f]{8}$/);
   });
 
   it('should copy liveControl when the radio declares it', () => {
@@ -147,12 +146,12 @@ describe('extractCatalogMetadata', () => {
     const radio = hydrateRadioConfig(raw, documentsByRef);
     const entry = extractCatalogMetadata(radio, 'bundled');
 
-    expect(entry.capabilities.liveControl).to.be.true;
-    expect(radio.cat).to.deep.equal({ protocol: 'kenwood', vfoCount: 2, powers: ['High', 'Medium', 'Low'] });
+    expect(entry.capabilities.liveControl).toBe(true);
+    expect(radio.cat).toEqual({ protocol: 'kenwood', vfoCount: 2, powers: ['High', 'Medium', 'Low'] });
   });
 
   it('should use RadioModelId-compatible model strings', () => {
     const radio = hydrateRadioConfig(baofengShapedConfig(), documentsByRef);
-    expect(radio.id.model).to.equal(RadioModelId('baofeng-uv5r'));
+    expect(radio.id.model).toBe(RadioModelId('baofeng-uv5r'));
   });
 });

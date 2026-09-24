@@ -1,7 +1,6 @@
 import type { RegistryRadio } from '../../../src/types/radio-config.js';
 import { RadioModelId } from '@springfield/ham-radio-api';
-import { describe, it } from 'node:test';
-import { expect } from 'chai';
+import { describe, expect, it } from 'vitest';
 import { NpmBasedConfigRegistry } from '../../../src/registry/config-registry.js';
 import { MockLogLayer } from 'loglayer';
 
@@ -10,26 +9,26 @@ const mockLogger = new MockLogLayer();
 describe('NpmBasedConfigRegistry', () => {
   it('should instantiate without error', () => {
     const registry = new NpmBasedConfigRegistry(mockLogger);
-    expect(registry).to.be.an('object');
+    expect(registry).toBeTypeOf('object');
   });
 
   it('should have core methods', () => {
     const registry = new NpmBasedConfigRegistry(mockLogger);
-    expect(registry.discoverConfigurations).to.be.a('function');
-    expect(registry.getConfiguration).to.be.a('function');
-    expect(registry.validateConfiguration).to.be.a('function');
-    expect(registry.registerConfiguration).to.be.a('function');
-    expect(registry.installPlugin).to.be.a('function');
-    expect(registry.listInstalledPlugins).to.be.a('function');
-    expect(registry.getCodec).to.be.a('function');
+    expect(registry.discoverConfigurations).toBeTypeOf('function');
+    expect(registry.getConfiguration).toBeTypeOf('function');
+    expect(registry.validateConfiguration).toBeTypeOf('function');
+    expect(registry.registerConfiguration).toBeTypeOf('function');
+    expect(registry.installPlugin).toBeTypeOf('function');
+    expect(registry.listInstalledPlugins).toBeTypeOf('function');
+    expect(registry.getCodec).toBeTypeOf('function');
   });
 
   it('should validate a minimal invalid configuration', () => {
     const registry = new NpmBasedConfigRegistry(mockLogger);
     const invalidConfig = {} as RegistryRadio;
     const result = registry.validateConfiguration(invalidConfig);
-    expect(result.isValid).to.be.false;
-    expect(result.errors).to.include('Configuration must have a valid model ID');
+    expect(result.isValid).toBe(false);
+    expect(result.errors).toContain('Configuration must have a valid model ID');
   });
 
   it('should validate a minimal valid configuration', () => {
@@ -73,7 +72,7 @@ describe('NpmBasedConfigRegistry', () => {
       },
     } as RegistryRadio;
     const result = registry.validateConfiguration(validConfig);
-    expect(result.isValid).to.be.true;
-    expect(result.errors).to.be.empty;
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
   });
 });
