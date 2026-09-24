@@ -1,3 +1,9 @@
+## [1.6.6](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.6.5...v1.6.6) (2026-09-24)
+
+### Bug Fixes
+
+* update @springfield/ham-radio-utils to 4.14.0 ([bac4ed6](https://github.com/springfield-ham-radio/ham-radio-registry/commit/bac4ed686b71487cd95055c119de34474f78791d))
+
 ## [1.6.5](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.6.4...v1.6.5) (2026-09-15)
 
 ### Bug Fixes
