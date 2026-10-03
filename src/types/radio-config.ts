@@ -76,6 +76,11 @@ export interface CodecConfig {
 export interface RegistryRadio extends Radio {
   $schema?: string;
   capabilities: RadioCapabilities;
+  /**
+   * Amateur bands this model can transmit on, as ADIF tokens (`2m`, `70cm`, `40m`).
+   * Omit when the module does not declare coverage.
+   */
+  bands?: string[];
   cat?: RadioCatConfig;
   codec?: CodecConfig;
   metadata: RadioConfigMetadata;
