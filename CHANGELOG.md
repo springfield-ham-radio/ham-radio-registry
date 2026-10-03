@@ -1,3 +1,9 @@
+## [1.7.1](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.7.0...v1.7.1) (2026-10-03)
+
+### Bug Fixes
+
+* **deps:** bump fast-uri from 3.1.7 to 3.1.8 ([#15](https://github.com/springfield-ham-radio/ham-radio-registry/issues/15)) ([f8a148c](https://github.com/springfield-ham-radio/ham-radio-registry/commit/f8a148c8796abfe778274013b642f82e9283a4c0))
+
 ## [1.7.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.6.6...v1.7.0) (2026-10-03)
 
 ### Features
