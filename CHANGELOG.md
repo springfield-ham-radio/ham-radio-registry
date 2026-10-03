@@ -1,3 +1,9 @@
+## [1.7.2](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.7.1...v1.7.2) (2026-10-03)
+
+### Bug Fixes
+
+* **deps:** bump brace-expansion from 2.1.4 to 2.1.7 ([#16](https://github.com/springfield-ham-radio/ham-radio-registry/issues/16)) ([9d02287](https://github.com/springfield-ham-radio/ham-radio-registry/commit/9d0228741eb5a9b8f9304d1cee6d1d92727b276a))
+
 ## [1.7.1](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.7.0...v1.7.1) (2026-10-03)
 
 ### Bug Fixes
