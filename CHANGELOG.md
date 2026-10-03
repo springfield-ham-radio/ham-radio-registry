@@ -1,3 +1,9 @@
+## [1.7.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.6.6...v1.7.0) (2026-10-03)
+
+### Features
+
+* **config:** add optional transmit bands to radio configs ([dede3de](https://github.com/springfield-ham-radio/ham-radio-registry/commit/dede3de4b817c6ae4e97b4f945a52cb71bde29f6))
+
 ## [1.6.6](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.6.5...v1.6.6) (2026-09-24)
 
 ### Bug Fixes
