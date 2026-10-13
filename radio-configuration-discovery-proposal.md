@@ -2,9 +2,11 @@
 
 ## Current design
 
-Radio modules are not distributed or discovered as npm packages. Each manufacturer module is a **JSON-only zip** attached to a GitHub Release. The desktop app finds those releases through the official catalog repository, [springfield-ham-radio/radio-module-catalog](https://github.com/springfield-ham-radio/radio-module-catalog), and installs only entries listed there.
+Radio modules are not distributed or discovered as npm packages. Each official radio is a **JSON-only zip** attached to a GitHub Release. The desktop app finds those releases through the official catalog repository, [springfield-ham-radio/radio-module-catalog](https://github.com/springfield-ham-radio/radio-module-catalog), and installs only entries listed there.
 
-`@springfield/ham-radio-registry` validates that catalog and hydrates the JSON configs. ham-radio-ui fetches the catalog, downloads the zip, and stores the radios. The Node entry `@springfield/ham-radio-registry/node` can still scan a local `node_modules` tree for workspace packages during development. That scanner is not how HamBench installs radios.
+`@springfield/ham-radio-registry` validates that catalog and hydrates the JSON configs. ham-radio-ui fetches the catalog, downloads the zip, and stores the radio. The Node entry `@springfield/ham-radio-registry/node` can still scan a local `node_modules` tree for workspace packages during development. That scanner is not how HamBench installs radios.
+
+Per-radio packaging is defined in [ADR 0009](https://github.com/springfield-ham-radio/ham-radio-docs/blob/main/docs/developer/adr/0009-per-radio-modules.md). Registry **2.x** accepts catalog **schema version 3** only.
 
 ### Catalog
 
@@ -12,28 +14,22 @@ The index is [`catalog.json`](https://github.com/springfield-ham-radio/radio-mod
 
 `https://springfield-ham-radio.github.io/radio-module-catalog/catalog.json`
 
-The document shape is [`catalog.schema.json`](https://github.com/springfield-ham-radio/radio-module-catalog/blob/main/catalog.schema.json). The published catalog uses `schemaVersion` `1`. `validateModuleCatalog` / `parseModuleCatalog` in this repo accept schema versions `1` and `2` and reject anything else.
+The document shape is [`catalog.schema.json`](https://github.com/springfield-ham-radio/radio-module-catalog/blob/main/catalog.schema.json). Published catalogs use `schemaVersion` `3`. `validateModuleCatalog` / `parseModuleCatalog` in this repo accept schema version `3` and reject `1` and `2` with an explicit error.
 
 ```json
 {
-  "schemaVersion": 1,
+  "schemaVersion": 3,
   "modules": [
     {
-      "id": "baofeng",
-      "package": "@springfield/radio-module-baofeng",
+      "id": "baofeng-uv5r",
+      "package": "@springfield/radio-module-baofeng-uv5r",
       "manufacturer": "Baofeng",
-      "description": "Baofeng UV-5R series (UV-5R and UV-5RE Plus share one config)",
-      "version": "3.6.1",
-      "radios": [
-        {
-          "modelId": "baofeng-uv5r",
-          "name": "Baofeng UV-5R",
-          "config": "configs/baofeng-uv5r.json"
-        }
-      ],
-      "supportedRadios": ["baofeng-uv5r"],
-      "minApiVersion": "17.3.0",
-      "downloadUrl": "https://github.com/springfield-ham-radio/radio-module-baofeng/releases/download/v3.6.1/radio-module-baofeng-3.6.1.zip",
+      "name": "Baofeng UV-5R",
+      "description": "Baofeng UV-5R and UV-5RE Plus share one config",
+      "version": "3.7.0",
+      "config": "configs/baofeng-uv5r.json",
+      "minApiVersion": "18.0.1",
+      "downloadUrl": "https://github.com/springfield-ham-radio/radio-module-baofeng/releases/download/v3.7.2/radio-module-baofeng-uv5r-3.7.0.zip",
       "integrity": "sha256:2020c229dc81230f8305464e2eb327e508e21b41ea4651f1a60b9f18672da9ce"
     }
   ]
@@ -42,43 +38,47 @@ The document shape is [`catalog.schema.json`](https://github.com/springfield-ham
 
 | Field | Meaning |
 | --- | --- |
-| `id` | Stable module id. Install directory name (`baofeng`). |
-| `package` | Package name for developers (`@springfield/radio-module-baofeng`). It is not an npm install coordinate. Module releases set `npmPublish: false`. |
-| `version` | Zip version from the GitHub Release, not each radio config's own driver version. |
-| `radios` | One entry per `configs/*.json` inside the zip: `modelId` (`id.model`), `name` (`id.name`), and `config` (`configs/<file>.json`). Models that share a config are listed once. |
-| `supportedRadios` | The same ids as `radios[].modelId`, kept so schema version 1 clients can list models. The parser also accepts older entries that only have `supportedRadios` and synthesizes `radios` from those ids. |
-| `minApiVersion` | Minimum `@springfield/ham-radio-api` version. Compared as dotted integers (`compareSemver`). Compatible when the app version is greater than or equal to this value. |
-| `downloadUrl` | HTTPS URL of the release zip. |
+| `id` | Config `id.model`. Install directory name (`baofeng-uv5r`). |
+| `package` | Per-radio package id for developers (`@springfield/radio-module-baofeng-uv5r`). Not an npm install coordinate. Manufacturer git repos keep `@springfield/radio-module-baofeng` in their own `package.json`. |
+| `manufacturer` | Manufacturer label (e.g. `Baofeng`, `Kenwood`). |
+| `name` | Config `id.name` (display name). |
+| `description` | Optional human-readable blurb. |
+| `version` | Driver config `version` from the JSON inside the zip ([ADR 0006](https://github.com/springfield-ham-radio/ham-radio-docs/blob/main/docs/developer/adr/0006-per-driver-config-semver.md)), not the manufacturer git tag. |
+| `config` | Path to the config inside the zip (`configs/<file>.json`). Each release zip contains exactly one `configs/*.json`. |
+| `minApiVersion` | Minimum `@springfield/ham-radio-api` version required for this radio. Compared with `compareSemver` / `isApiVersionCompatible`. |
+| `downloadUrl` | HTTPS URL of the per-radio release zip. |
 | `integrity` | SHA-256 of the zip bytes, `sha256:` plus 64 hex characters. Stored lowercased. |
 
-`parseModuleCatalog` throws when the JSON is invalid or validation fails. Duplicate module ids, duplicate `modelId`s, and duplicate `config` paths inside one module are rejected.
+`parseModuleCatalog` throws when the JSON is invalid or validation fails. Duplicate `id` values (model ids) are rejected. Legacy `radios[]` and `supportedRadios` fields are rejected. Schema versions 1 and 2 fail immediately with that schema error and are not also reported as missing schema version 3 fields.
+
+`id`, `package`, `config`, and the zip filename must agree: `package` is `@springfield/radio-module-<id>`, `config` is `configs/<id>.json`, and the `downloadUrl` path must end in `radio-module-<id>-<version>.zip`. The release tag in the URL may differ from `version`. `id` is lowercase segments separated by hyphens (`baofeng-uv5r`), so retired manufacturer ids (`baofeng`, `kenwood`) and short ids (`uv5r`) do not validate. `version` and `minApiVersion` must be `major.minor.patch` with no `v` prefix and no prerelease suffix.
 
 ### Publishing a module
 
-Module repositories (for example `radio-module-baofeng`) stay JSON. `yarn pack:release` (also run from semantic-release `prepareCmd`) builds the zip and a catalog fragment:
+Manufacturer repositories (for example `radio-module-baofeng`, `radio-module-kenwood`) stay JSON. `yarn pack:release` builds **one zip per** `configs/*.json` and writes catalog fragments for schema version 3:
 
-1. Zip `configs/`, `src/shared/schemas/`, and `src/shared/memory-maps/` into `dist-release/radio-module-<name>-<version>.zip`. The archive is JSON only.
-2. Hash the zip and write `dist-release/catalog-module.json` (`id`, `package`, `manufacturer`, `version`, `radios` read from each `configs/*.json`, `supportedRadios`, `minApiVersion`, `downloadUrl`, `integrity`).
-3. semantic-release attaches that zip to the GitHub Release. npm publish is off.
+1. For each config, zip that `configs/<file>.json` and every relative `$ref` it reaches into `dist-release/radio-module-<modelId>-<config.version>.zip`. The archive is JSON only.
+2. Hash each zip and write `dist-release/catalog-entries.json` (array of schema version 3 entries: `id`, `package`, `manufacturer`, `name`, `version`, `config`, `minApiVersion`, `downloadUrl`, `integrity`).
+3. semantic-release attaches every changed zip to the GitHub Release. npm publish is off.
 
-Update the catalog by copying that fragment into `catalog.json` (or by updating `version`, `downloadUrl`, `integrity`, and `radios`). Pushing `main` on `radio-module-catalog` deploys GitHub Pages. Do not invent radio ids.
+Update the catalog by merging those entries into `catalog.json`. Pushing `main` on `radio-module-catalog` deploys GitHub Pages. Do not invent radio ids.
 
 ### How ham-radio-ui installs from the catalog
 
 `app/utils/radio-module-install.ts` fetches the Pages URL (overrideable) and calls `parseModuleCatalog`.
 
-Official install (`installOfficialModule`):
+Official install (`installOfficialModule`) with registry 2.x:
 
-1. Reject the entry when `minApiVersion` is newer than the app's API version (`APP_HAM_RADIO_API_VERSION`, currently `17.3.0`). The preferences list shows those modules as blocked until HamBench is updated.
+1. Reject the entry when `minApiVersion` is newer than the app's API version (`APP_HAM_RADIO_API_VERSION`). The preferences list shows those modules as blocked until HamBench is updated.
 2. Invoke the Tauri command `download_and_install_radio_module` with `downloadUrl`, `integrity`, `id`, and `version`.
-3. The command allows HTTPS downloads only from `github.com`, `objects.githubusercontent.com`, `release-assets.githubusercontent.com`, and `springfield-ham-radio.github.io`. It checks the SHA-256 against `integrity` before writing anything.
-4. Extraction allows only `.json` entries, refuses absolute paths and `..`, and requires a non-empty `configs/` directory of JSON files. Files land under app data: `radio-modules/<moduleId>/<version>/`.
-5. Each selected config is read back, relative `$ref` siblings are loaded, and `hydrateRadioConfig` inlines them. `validateConfiguration` checks model id, serial config, memory config, read/write protocols, and settings schema.
-6. The hydrated radio is upserted into the SQLite `radio_models` table with source `installed`, `sourcePath` set to the install directory, and a content hash from `hashRadioConfig`. An existing `user` row for the same model id is left in place.
+3. The command allows HTTPS downloads only from trusted GitHub hosts. It checks the SHA-256 against `integrity` before writing anything.
+4. Extraction allows only `.json` entries, refuses absolute paths and `..`, and requires exactly one `configs/*.json`. Files land under app data: `radio-modules/<modelId>/<configVersion>/`.
+5. The config is read back, relative `$ref` siblings are loaded, and `hydrateRadioConfig` inlines them. `validateConfiguration` checks model id, serial config, memory config, read/write protocols, and settings schema.
+6. The hydrated radio is upserted into the SQLite `radio_models` table with source `installed`, `sourcePath` set to the install directory, and a content hash from `hashRadioConfig`.
 
-A catalog install can be limited to one radio via `radios[].config` or `modelId`. Listing and update checks live in `app/utils/radio-module-listing.ts`: manufacturers come from the catalog, installed rows match on module id (install path or `metadata.moduleId`) or on model id, and an update is offered when the catalog `version` is greater than the version directory on disk. That comparison uses the zip version, not the driver version stored on the radio config. Rows with source `user` are not updated from the catalog.
+Listing and update checks match catalog entries by `id` (model id). An update is offered when the catalog `version` is greater than the installed directory version. Rows with source `user` are not updated from the catalog.
 
-Uninstall deletes that version directory (and the module directory when it becomes empty) and removes catalog rows that share the install `sourcePath`.
+Uninstall removes that radio's catalog row and that radio's version directory only.
 
 ### Local modules
 
@@ -100,4 +100,4 @@ Browser-safe exports (no `node:fs`):
 
 The rest of the original proposal — npm packages such as `@springfield/radio-module-baofeng`, `package.json` `springfield.pluginType`, keyword search, `NpmBasedConfigRegistry.discoverConfigurations()` over `node_modules` as the product install path, and `yarn add` from an npm registry — is **not** the shipping design. Do not implement discovery or third-party distribution that way.
 
-What remains from that work is local and in-repo only: `@springfield/ham-radio-registry/node` still exposes `NpmBasedConfigRegistry` so Node tools can load radio JSON from workspace packages already present on disk. HamBench does not install catalog modules through it. Module release configs disable npm publish and attach the JSON zip to GitHub Releases instead.
+What remains from that work is local and in-repo only: `@springfield/ham-radio-registry/node` still exposes `NpmBasedConfigRegistry` so Node tools can load radio JSON from workspace packages already present on disk. HamBench does not install catalog modules through it. Module release configs disable npm publish and attach JSON zips to GitHub Releases instead.

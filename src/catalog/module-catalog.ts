@@ -1,13 +1,37 @@
-import type {
-  CatalogValidationResult,
-  RadioModuleCatalog,
-  RadioModuleCatalogEntry,
-  RadioModuleCatalogRadio,
-} from '../types/module-catalog.js';
+import type { CatalogValidationResult, RadioModuleCatalog, RadioModuleCatalogEntry } from '../types/module-catalog.js';
 
 const INTEGRITY_PATTERN = /^sha256:[a-fA-F0-9]{64}$/;
 const CONFIG_PATH_PATTERN = /^configs\/[^/]+\.json$/;
-const SUPPORTED_SCHEMA_VERSIONS = new Set([1, 2]);
+/** `baofeng-uv5r`, `kenwood-th-d74`. Rejects retired ids such as `baofeng` and short ids such as `uv5r`. */
+const MODEL_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)+$/;
+const SEMVER_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
+const SUPPORTED_SCHEMA_VERSION = 3;
+
+function expectedPackage(modelId: string): string {
+  return `@springfield/radio-module-${modelId}`;
+}
+
+function expectedConfig(modelId: string): string {
+  return `configs/${modelId}.json`;
+}
+
+function expectedAssetName(modelId: string, version: string): string {
+  return `radio-module-${modelId}-${version}.zip`;
+}
+
+function downloadAssetName(downloadUrl: string): string | undefined {
+  try {
+    const segment = new URL(downloadUrl).pathname.split('/').pop();
+
+    if (!segment) {
+      return undefined;
+    }
+
+    return decodeURIComponent(segment);
+  } catch {
+    return undefined;
+  }
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -26,78 +50,6 @@ function isHttpsUrl(value: string): boolean {
   }
 }
 
-function sameStringSet(left: string[], right: string[]): boolean {
-  if (left.length !== right.length) {
-    return false;
-  }
-
-  const rightSet = new Set(right);
-  return left.every((value) => rightSet.has(value));
-}
-
-function validateCatalogRadio(
-  value: unknown,
-  prefix: string,
-  errors: string[],
-  seenModelIds: Set<string>,
-  seenConfigs: Set<string>,
-): RadioModuleCatalogRadio | undefined {
-  if (!isRecord(value)) {
-    errors.push(`${prefix} must be an object`);
-    return undefined;
-  }
-
-  if (!isNonEmptyString(value.modelId)) {
-    errors.push(`${prefix}.modelId is required`);
-  }
-
-  if (!isNonEmptyString(value.name)) {
-    errors.push(`${prefix}.name is required`);
-  }
-
-  if (value.config !== undefined) {
-    if (!isNonEmptyString(value.config) || !CONFIG_PATH_PATTERN.test(value.config)) {
-      errors.push(`${prefix}.config must be a configs/*.json path`);
-    }
-  }
-
-  if (errors.some((error) => error.startsWith(prefix))) {
-    return undefined;
-  }
-
-  const modelId = value.modelId as string;
-  const config = typeof value.config === 'string' ? value.config : undefined;
-
-  if (seenModelIds.has(modelId)) {
-    errors.push(`${prefix}.modelId is duplicated: ${modelId}`);
-    return undefined;
-  }
-
-  seenModelIds.add(modelId);
-
-  if (config) {
-    if (seenConfigs.has(config)) {
-      errors.push(`${prefix}.config is duplicated: ${config}`);
-      return undefined;
-    }
-
-    seenConfigs.add(config);
-  }
-
-  return {
-    modelId,
-    name: value.name as string,
-    ...(config ? { config } : {}),
-  };
-}
-
-function radiosFromSupportedRadios(supportedRadios: string[]): RadioModuleCatalogRadio[] {
-  return supportedRadios.map((modelId) => ({
-    modelId,
-    name: modelId,
-  }));
-}
-
 function validateModuleEntry(entry: unknown, index: number, errors: string[]): RadioModuleCatalogEntry | undefined {
   if (!isRecord(entry)) {
     errors.push(`modules[${index}] must be an object`);
@@ -106,71 +58,66 @@ function validateModuleEntry(entry: unknown, index: number, errors: string[]): R
 
   const prefix = `modules[${index}]`;
 
+  if (entry.radios !== undefined) {
+    errors.push(`${prefix}.radios is not supported in schema version 3`);
+  }
+
+  if (entry.supportedRadios !== undefined) {
+    errors.push(`${prefix}.supportedRadios is not supported in schema version 3`);
+  }
+
+  const modelId = isNonEmptyString(entry.id) && MODEL_ID_PATTERN.test(entry.id) ? entry.id : undefined;
+
   if (!isNonEmptyString(entry.id)) {
     errors.push(`${prefix}.id is required`);
+  } else if (!modelId) {
+    errors.push(
+      `${prefix}.id must be a model id like baofeng-uv5r (lowercase segments separated by hyphens); received "${entry.id}"`,
+    );
   }
 
   if (!isNonEmptyString(entry.package)) {
     errors.push(`${prefix}.package is required`);
+  } else if (modelId && entry.package !== expectedPackage(modelId)) {
+    errors.push(`${prefix}.package must be ${expectedPackage(modelId)}`);
   }
 
   if (!isNonEmptyString(entry.manufacturer)) {
     errors.push(`${prefix}.manufacturer is required`);
   }
 
-  if (!isNonEmptyString(entry.version)) {
-    errors.push(`${prefix}.version is required`);
+  if (!isNonEmptyString(entry.name)) {
+    errors.push(`${prefix}.name is required`);
   }
 
-  const radiosValue = entry.radios;
-  const supportedRadiosValue = entry.supportedRadios;
-  const hasRadios = Array.isArray(radiosValue);
-  const hasSupportedRadios = Array.isArray(supportedRadiosValue);
-  let radios: RadioModuleCatalogRadio[] = [];
-  let supportedRadios: string[] = [];
+  if (!isNonEmptyString(entry.version)) {
+    errors.push(`${prefix}.version is required`);
+  } else if (!SEMVER_PATTERN.test(entry.version)) {
+    errors.push(`${prefix}.version must be a major.minor.patch semver`);
+  }
 
-  if (hasRadios) {
-    if (radiosValue.length === 0) {
-      errors.push(`${prefix}.radios must be a non-empty array`);
-    } else {
-      const seenModelIds = new Set<string>();
-      const seenConfigs = new Set<string>();
-
-      radios = radiosValue
-        .map((radio: unknown, radioIndex: number) =>
-          validateCatalogRadio(radio, `${prefix}.radios[${radioIndex}]`, errors, seenModelIds, seenConfigs),
-        )
-        .filter((radio: RadioModuleCatalogRadio | undefined): radio is RadioModuleCatalogRadio => radio !== undefined);
-    }
-
-    supportedRadios = radios.map((radio) => radio.modelId);
-
-    if (hasSupportedRadios) {
-      if (supportedRadiosValue.length === 0 || !supportedRadiosValue.every((radio: unknown) => isNonEmptyString(radio))) {
-        errors.push(`${prefix}.supportedRadios must contain only non-empty strings`);
-      } else if (!sameStringSet(supportedRadiosValue.filter(isNonEmptyString), supportedRadios)) {
-        errors.push(`${prefix}.supportedRadios must match radios[].modelId`);
-      }
-    }
-  } else if (hasSupportedRadios) {
-    if (supportedRadiosValue.length === 0) {
-      errors.push(`${prefix}.supportedRadios must be a non-empty array`);
-    } else if (!supportedRadiosValue.every((radio: unknown) => isNonEmptyString(radio))) {
-      errors.push(`${prefix}.supportedRadios must contain only non-empty strings`);
-    } else {
-      supportedRadios = supportedRadiosValue.filter(isNonEmptyString);
-      radios = radiosFromSupportedRadios(supportedRadios);
-    }
-  } else {
-    errors.push(`${prefix}.radios must be a non-empty array`);
+  if (!isNonEmptyString(entry.config) || !CONFIG_PATH_PATTERN.test(entry.config)) {
+    errors.push(`${prefix}.config must be a configs/*.json path`);
+  } else if (modelId && entry.config !== expectedConfig(modelId)) {
+    errors.push(`${prefix}.config must be ${expectedConfig(modelId)}`);
   }
 
   if (!isNonEmptyString(entry.minApiVersion)) {
     errors.push(`${prefix}.minApiVersion is required`);
+  } else if (!SEMVER_PATTERN.test(entry.minApiVersion)) {
+    errors.push(`${prefix}.minApiVersion must be a major.minor.patch semver`);
   }
 
-  if (!isNonEmptyString(entry.downloadUrl) || !isHttpsUrl(entry.downloadUrl)) {
+  const downloadUrl = isNonEmptyString(entry.downloadUrl) && isHttpsUrl(entry.downloadUrl) ? entry.downloadUrl : undefined;
+
+  if (!downloadUrl) {
     errors.push(`${prefix}.downloadUrl must be an https URL`);
+  } else if (modelId && isNonEmptyString(entry.version) && SEMVER_PATTERN.test(entry.version)) {
+    const assetName = expectedAssetName(modelId, entry.version);
+
+    if (downloadAssetName(downloadUrl) !== assetName) {
+      errors.push(`${prefix}.downloadUrl must name the asset ${assetName}`);
+    }
   }
 
   if (!isNonEmptyString(entry.integrity) || !INTEGRITY_PATTERN.test(entry.integrity)) {
@@ -189,10 +136,10 @@ function validateModuleEntry(entry: unknown, index: number, errors: string[]): R
     id: entry.id as string,
     package: entry.package as string,
     manufacturer: entry.manufacturer as string,
+    name: entry.name as string,
     ...(typeof entry.description === 'string' ? { description: entry.description } : {}),
     version: entry.version as string,
-    radios,
-    supportedRadios,
+    config: entry.config as string,
     minApiVersion: entry.minApiVersion as string,
     downloadUrl: entry.downloadUrl as string,
     integrity: (entry.integrity as string).toLowerCase(),
@@ -210,8 +157,16 @@ export function validateModuleCatalog(value: unknown): CatalogValidationResult &
     return { isValid: false, errors: ['Catalog must be a JSON object'], warnings };
   }
 
-  if (typeof value.schemaVersion !== 'number' || !SUPPORTED_SCHEMA_VERSIONS.has(value.schemaVersion)) {
-    errors.push(`Unsupported schemaVersion: expected ${[...SUPPORTED_SCHEMA_VERSIONS].join(' or ')}`);
+  if (typeof value.schemaVersion !== 'number' || value.schemaVersion !== SUPPORTED_SCHEMA_VERSION) {
+    if (value.schemaVersion === 1 || value.schemaVersion === 2) {
+      errors.push(
+        `Unsupported schemaVersion ${value.schemaVersion}: this registry accepts only schema version ${SUPPORTED_SCHEMA_VERSION}. Schema versions 1 and 2 are no longer supported.`,
+      );
+    } else {
+      errors.push(`Unsupported schemaVersion: expected schema version ${SUPPORTED_SCHEMA_VERSION}`);
+    }
+
+    return { isValid: false, errors, warnings };
   }
 
   if (!Array.isArray(value.modules)) {
@@ -247,7 +202,7 @@ export function validateModuleCatalog(value: unknown): CatalogValidationResult &
     errors,
     warnings,
     catalog: {
-      schemaVersion: value.schemaVersion as number,
+      schemaVersion: SUPPORTED_SCHEMA_VERSION,
       modules,
     },
   };
