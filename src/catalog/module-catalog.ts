@@ -1,13 +1,8 @@
-import type {
-  CatalogValidationResult,
-  RadioModuleCatalog,
-  RadioModuleCatalogEntry,
-  RadioModuleCatalogRadio,
-} from '../types/module-catalog.js';
+import type { CatalogValidationResult, RadioModuleCatalog, RadioModuleCatalogEntry } from '../types/module-catalog.js';
 
 const INTEGRITY_PATTERN = /^sha256:[a-fA-F0-9]{64}$/;
 const CONFIG_PATH_PATTERN = /^configs\/[^/]+\.json$/;
-const SUPPORTED_SCHEMA_VERSIONS = new Set([1, 2]);
+const SUPPORTED_SCHEMA_VERSION = 3;
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -26,78 +21,6 @@ function isHttpsUrl(value: string): boolean {
   }
 }
 
-function sameStringSet(left: string[], right: string[]): boolean {
-  if (left.length !== right.length) {
-    return false;
-  }
-
-  const rightSet = new Set(right);
-  return left.every((value) => rightSet.has(value));
-}
-
-function validateCatalogRadio(
-  value: unknown,
-  prefix: string,
-  errors: string[],
-  seenModelIds: Set<string>,
-  seenConfigs: Set<string>,
-): RadioModuleCatalogRadio | undefined {
-  if (!isRecord(value)) {
-    errors.push(`${prefix} must be an object`);
-    return undefined;
-  }
-
-  if (!isNonEmptyString(value.modelId)) {
-    errors.push(`${prefix}.modelId is required`);
-  }
-
-  if (!isNonEmptyString(value.name)) {
-    errors.push(`${prefix}.name is required`);
-  }
-
-  if (value.config !== undefined) {
-    if (!isNonEmptyString(value.config) || !CONFIG_PATH_PATTERN.test(value.config)) {
-      errors.push(`${prefix}.config must be a configs/*.json path`);
-    }
-  }
-
-  if (errors.some((error) => error.startsWith(prefix))) {
-    return undefined;
-  }
-
-  const modelId = value.modelId as string;
-  const config = typeof value.config === 'string' ? value.config : undefined;
-
-  if (seenModelIds.has(modelId)) {
-    errors.push(`${prefix}.modelId is duplicated: ${modelId}`);
-    return undefined;
-  }
-
-  seenModelIds.add(modelId);
-
-  if (config) {
-    if (seenConfigs.has(config)) {
-      errors.push(`${prefix}.config is duplicated: ${config}`);
-      return undefined;
-    }
-
-    seenConfigs.add(config);
-  }
-
-  return {
-    modelId,
-    name: value.name as string,
-    ...(config ? { config } : {}),
-  };
-}
-
-function radiosFromSupportedRadios(supportedRadios: string[]): RadioModuleCatalogRadio[] {
-  return supportedRadios.map((modelId) => ({
-    modelId,
-    name: modelId,
-  }));
-}
-
 function validateModuleEntry(entry: unknown, index: number, errors: string[]): RadioModuleCatalogEntry | undefined {
   if (!isRecord(entry)) {
     errors.push(`modules[${index}] must be an object`);
@@ -105,6 +28,14 @@ function validateModuleEntry(entry: unknown, index: number, errors: string[]): R
   }
 
   const prefix = `modules[${index}]`;
+
+  if (entry.radios !== undefined) {
+    errors.push(`${prefix}.radios is not supported in schema version 3`);
+  }
+
+  if (entry.supportedRadios !== undefined) {
+    errors.push(`${prefix}.supportedRadios is not supported in schema version 3`);
+  }
 
   if (!isNonEmptyString(entry.id)) {
     errors.push(`${prefix}.id is required`);
@@ -118,51 +49,16 @@ function validateModuleEntry(entry: unknown, index: number, errors: string[]): R
     errors.push(`${prefix}.manufacturer is required`);
   }
 
+  if (!isNonEmptyString(entry.name)) {
+    errors.push(`${prefix}.name is required`);
+  }
+
   if (!isNonEmptyString(entry.version)) {
     errors.push(`${prefix}.version is required`);
   }
 
-  const radiosValue = entry.radios;
-  const supportedRadiosValue = entry.supportedRadios;
-  const hasRadios = Array.isArray(radiosValue);
-  const hasSupportedRadios = Array.isArray(supportedRadiosValue);
-  let radios: RadioModuleCatalogRadio[] = [];
-  let supportedRadios: string[] = [];
-
-  if (hasRadios) {
-    if (radiosValue.length === 0) {
-      errors.push(`${prefix}.radios must be a non-empty array`);
-    } else {
-      const seenModelIds = new Set<string>();
-      const seenConfigs = new Set<string>();
-
-      radios = radiosValue
-        .map((radio: unknown, radioIndex: number) =>
-          validateCatalogRadio(radio, `${prefix}.radios[${radioIndex}]`, errors, seenModelIds, seenConfigs),
-        )
-        .filter((radio: RadioModuleCatalogRadio | undefined): radio is RadioModuleCatalogRadio => radio !== undefined);
-    }
-
-    supportedRadios = radios.map((radio) => radio.modelId);
-
-    if (hasSupportedRadios) {
-      if (supportedRadiosValue.length === 0 || !supportedRadiosValue.every((radio: unknown) => isNonEmptyString(radio))) {
-        errors.push(`${prefix}.supportedRadios must contain only non-empty strings`);
-      } else if (!sameStringSet(supportedRadiosValue.filter(isNonEmptyString), supportedRadios)) {
-        errors.push(`${prefix}.supportedRadios must match radios[].modelId`);
-      }
-    }
-  } else if (hasSupportedRadios) {
-    if (supportedRadiosValue.length === 0) {
-      errors.push(`${prefix}.supportedRadios must be a non-empty array`);
-    } else if (!supportedRadiosValue.every((radio: unknown) => isNonEmptyString(radio))) {
-      errors.push(`${prefix}.supportedRadios must contain only non-empty strings`);
-    } else {
-      supportedRadios = supportedRadiosValue.filter(isNonEmptyString);
-      radios = radiosFromSupportedRadios(supportedRadios);
-    }
-  } else {
-    errors.push(`${prefix}.radios must be a non-empty array`);
+  if (!isNonEmptyString(entry.config) || !CONFIG_PATH_PATTERN.test(entry.config)) {
+    errors.push(`${prefix}.config must be a configs/*.json path`);
   }
 
   if (!isNonEmptyString(entry.minApiVersion)) {
@@ -189,10 +85,10 @@ function validateModuleEntry(entry: unknown, index: number, errors: string[]): R
     id: entry.id as string,
     package: entry.package as string,
     manufacturer: entry.manufacturer as string,
+    name: entry.name as string,
     ...(typeof entry.description === 'string' ? { description: entry.description } : {}),
     version: entry.version as string,
-    radios,
-    supportedRadios,
+    config: entry.config as string,
     minApiVersion: entry.minApiVersion as string,
     downloadUrl: entry.downloadUrl as string,
     integrity: (entry.integrity as string).toLowerCase(),
@@ -210,8 +106,14 @@ export function validateModuleCatalog(value: unknown): CatalogValidationResult &
     return { isValid: false, errors: ['Catalog must be a JSON object'], warnings };
   }
 
-  if (typeof value.schemaVersion !== 'number' || !SUPPORTED_SCHEMA_VERSIONS.has(value.schemaVersion)) {
-    errors.push(`Unsupported schemaVersion: expected ${[...SUPPORTED_SCHEMA_VERSIONS].join(' or ')}`);
+  if (typeof value.schemaVersion !== 'number' || value.schemaVersion !== SUPPORTED_SCHEMA_VERSION) {
+    if (value.schemaVersion === 1 || value.schemaVersion === 2) {
+      errors.push(
+        `Unsupported schemaVersion: ${value.schemaVersion} is no longer supported; expected schema version ${SUPPORTED_SCHEMA_VERSION}`,
+      );
+    } else {
+      errors.push(`Unsupported schemaVersion: expected ${SUPPORTED_SCHEMA_VERSION}`);
+    }
   }
 
   if (!Array.isArray(value.modules)) {
@@ -247,7 +149,7 @@ export function validateModuleCatalog(value: unknown): CatalogValidationResult &
     errors,
     warnings,
     catalog: {
-      schemaVersion: value.schemaVersion as number,
+      schemaVersion: SUPPORTED_SCHEMA_VERSION,
       modules,
     },
   };
