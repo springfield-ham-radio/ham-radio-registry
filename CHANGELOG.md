@@ -1,3 +1,18 @@
+## [2.0.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.7.3...v2.0.0) (2026-10-13)
+
+### ⚠ BREAKING CHANGES
+
+* catalog schemaVersion 3 only; each entry is one radio. Schema versions 1 and 2 are rejected. Implements ADR 0009.
+
+### Features
+
+* per-radio catalog schema version 3 ([#27](https://github.com/springfield-ham-radio/ham-radio-registry/issues/27)) ([6abd3fe](https://github.com/springfield-ham-radio/ham-radio-registry/commit/6abd3fe68433d3d9a1d10fdbe928f77eef8b340f))
+
+### Bug Fixes
+
+* **deps:** bump handlebars from 4.7.8 to 4.7.10 ([#24](https://github.com/springfield-ham-radio/ham-radio-registry/issues/24)) ([8af74ff](https://github.com/springfield-ham-radio/ham-radio-registry/commit/8af74ff76f7b9b1dc4ef09f70354569cd9be5e92))
+* **deps:** bump source-map-js from 1.2.1 to 1.2.2 ([#25](https://github.com/springfield-ham-radio/ham-radio-registry/issues/25)) ([4367979](https://github.com/springfield-ham-radio/ham-radio-registry/commit/4367979e3d5b9112bbd787a2fd293044a94e4425))
+
 ## [1.7.3](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.7.2...v1.7.3) (2026-10-04)
 
 ### Bug Fixes
