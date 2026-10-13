@@ -2,7 +2,36 @@ import type { CatalogValidationResult, RadioModuleCatalog, RadioModuleCatalogEnt
 
 const INTEGRITY_PATTERN = /^sha256:[a-fA-F0-9]{64}$/;
 const CONFIG_PATH_PATTERN = /^configs\/[^/]+\.json$/;
+/** `baofeng-uv5r`, `kenwood-th-d74`. Rejects retired ids such as `baofeng` and short ids such as `uv5r`. */
+const MODEL_ID_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)+$/;
+const SEMVER_PATTERN = /^(0|[1-9]\d*)\.(0|[1-9]\d*)\.(0|[1-9]\d*)$/;
 const SUPPORTED_SCHEMA_VERSION = 3;
+
+function expectedPackage(modelId: string): string {
+  return `@springfield/radio-module-${modelId}`;
+}
+
+function expectedConfig(modelId: string): string {
+  return `configs/${modelId}.json`;
+}
+
+function expectedAssetName(modelId: string, version: string): string {
+  return `radio-module-${modelId}-${version}.zip`;
+}
+
+function downloadAssetName(downloadUrl: string): string | undefined {
+  try {
+    const segment = new URL(downloadUrl).pathname.split('/').pop();
+
+    if (!segment) {
+      return undefined;
+    }
+
+    return decodeURIComponent(segment);
+  } catch {
+    return undefined;
+  }
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -37,12 +66,20 @@ function validateModuleEntry(entry: unknown, index: number, errors: string[]): R
     errors.push(`${prefix}.supportedRadios is not supported in schema version 3`);
   }
 
+  const modelId = isNonEmptyString(entry.id) && MODEL_ID_PATTERN.test(entry.id) ? entry.id : undefined;
+
   if (!isNonEmptyString(entry.id)) {
     errors.push(`${prefix}.id is required`);
+  } else if (!modelId) {
+    errors.push(
+      `${prefix}.id must be a model id like baofeng-uv5r (lowercase segments separated by hyphens); received "${entry.id}"`,
+    );
   }
 
   if (!isNonEmptyString(entry.package)) {
     errors.push(`${prefix}.package is required`);
+  } else if (modelId && entry.package !== expectedPackage(modelId)) {
+    errors.push(`${prefix}.package must be ${expectedPackage(modelId)}`);
   }
 
   if (!isNonEmptyString(entry.manufacturer)) {
@@ -55,18 +92,32 @@ function validateModuleEntry(entry: unknown, index: number, errors: string[]): R
 
   if (!isNonEmptyString(entry.version)) {
     errors.push(`${prefix}.version is required`);
+  } else if (!SEMVER_PATTERN.test(entry.version)) {
+    errors.push(`${prefix}.version must be a major.minor.patch semver`);
   }
 
   if (!isNonEmptyString(entry.config) || !CONFIG_PATH_PATTERN.test(entry.config)) {
     errors.push(`${prefix}.config must be a configs/*.json path`);
+  } else if (modelId && entry.config !== expectedConfig(modelId)) {
+    errors.push(`${prefix}.config must be ${expectedConfig(modelId)}`);
   }
 
   if (!isNonEmptyString(entry.minApiVersion)) {
     errors.push(`${prefix}.minApiVersion is required`);
+  } else if (!SEMVER_PATTERN.test(entry.minApiVersion)) {
+    errors.push(`${prefix}.minApiVersion must be a major.minor.patch semver`);
   }
 
-  if (!isNonEmptyString(entry.downloadUrl) || !isHttpsUrl(entry.downloadUrl)) {
+  const downloadUrl = isNonEmptyString(entry.downloadUrl) && isHttpsUrl(entry.downloadUrl) ? entry.downloadUrl : undefined;
+
+  if (!downloadUrl) {
     errors.push(`${prefix}.downloadUrl must be an https URL`);
+  } else if (modelId && isNonEmptyString(entry.version) && SEMVER_PATTERN.test(entry.version)) {
+    const assetName = expectedAssetName(modelId, entry.version);
+
+    if (downloadAssetName(downloadUrl) !== assetName) {
+      errors.push(`${prefix}.downloadUrl must name the asset ${assetName}`);
+    }
   }
 
   if (!isNonEmptyString(entry.integrity) || !INTEGRITY_PATTERN.test(entry.integrity)) {
@@ -109,11 +160,13 @@ export function validateModuleCatalog(value: unknown): CatalogValidationResult &
   if (typeof value.schemaVersion !== 'number' || value.schemaVersion !== SUPPORTED_SCHEMA_VERSION) {
     if (value.schemaVersion === 1 || value.schemaVersion === 2) {
       errors.push(
-        `Unsupported schemaVersion: ${value.schemaVersion} is no longer supported; expected schema version ${SUPPORTED_SCHEMA_VERSION}`,
+        `Unsupported schemaVersion ${value.schemaVersion}: this registry accepts only schema version ${SUPPORTED_SCHEMA_VERSION}. Schema versions 1 and 2 are no longer supported.`,
       );
     } else {
-      errors.push(`Unsupported schemaVersion: expected ${SUPPORTED_SCHEMA_VERSION}`);
+      errors.push(`Unsupported schemaVersion: expected schema version ${SUPPORTED_SCHEMA_VERSION}`);
     }
+
+    return { isValid: false, errors, warnings };
   }
 
   if (!Array.isArray(value.modules)) {

@@ -49,7 +49,9 @@ The document shape is [`catalog.schema.json`](https://github.com/springfield-ham
 | `downloadUrl` | HTTPS URL of the per-radio release zip. |
 | `integrity` | SHA-256 of the zip bytes, `sha256:` plus 64 hex characters. Stored lowercased. |
 
-`parseModuleCatalog` throws when the JSON is invalid or validation fails. Duplicate `id` values (model ids) are rejected. Legacy `radios[]` and `supportedRadios` fields are rejected.
+`parseModuleCatalog` throws when the JSON is invalid or validation fails. Duplicate `id` values (model ids) are rejected. Legacy `radios[]` and `supportedRadios` fields are rejected. Schema versions 1 and 2 fail immediately with that schema error and are not also reported as missing schema version 3 fields.
+
+`id`, `package`, `config`, and the zip filename must agree: `package` is `@springfield/radio-module-<id>`, `config` is `configs/<id>.json`, and the `downloadUrl` path must end in `radio-module-<id>-<version>.zip`. The release tag in the URL may differ from `version`. `id` is lowercase segments separated by hyphens (`baofeng-uv5r`), so retired manufacturer ids (`baofeng`, `kenwood`) and short ids (`uv5r`) do not validate. `version` and `minApiVersion` must be `major.minor.patch` with no `v` prefix and no prerelease suffix.
 
 ### Publishing a module
 

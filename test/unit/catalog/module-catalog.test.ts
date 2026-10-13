@@ -76,16 +76,22 @@ describe('module catalog', () => {
     expect(catalog.modules[0]?.integrity).toMatch(/^sha256:[a-f0-9]{64}$/);
   });
 
-  it('should reject schema versions 1 and 2', () => {
+  it('should reject schema versions 1 and 2 without field-level noise', () => {
     const v1 = validateModuleCatalog(legacyCatalogV1);
     expect(v1.isValid).toBe(false);
-    expect(v1.errors.join(' ')).toContain('schemaVersion: 1 is no longer supported');
+    expect(v1.errors).toEqual([
+      'Unsupported schemaVersion 1: this registry accepts only schema version 3. Schema versions 1 and 2 are no longer supported.',
+    ]);
 
     const v2 = validateModuleCatalog({ ...legacyCatalogV1, schemaVersion: 2 });
     expect(v2.isValid).toBe(false);
-    expect(v2.errors.join(' ')).toContain('schemaVersion: 2 is no longer supported');
+    expect(v2.errors).toEqual([
+      'Unsupported schemaVersion 2: this registry accepts only schema version 3. Schema versions 1 and 2 are no longer supported.',
+    ]);
 
-    expect(() => parseModuleCatalog(JSON.stringify(legacyCatalogV1))).toThrow(/schemaVersion: 1 is no longer supported/);
+    expect(() => parseModuleCatalog(JSON.stringify(legacyCatalogV1))).toThrow(
+      /Unsupported schemaVersion 1: this registry accepts only schema version 3/,
+    );
   });
 
   it('should reject legacy radios and supportedRadios fields', () => {
@@ -114,11 +120,92 @@ describe('module catalog', () => {
     expect(result.errors.join(' ')).toContain('Duplicate module id: baofeng-uv5r');
   });
 
+  it('should reject supportedRadios-only entries', () => {
+    const result = validateModuleCatalog({
+      schemaVersion: 3,
+      modules: [
+        {
+          ...sampleCatalog.modules[0],
+          supportedRadios: ['baofeng-uv5r'],
+        },
+      ],
+    });
+
+    expect(result.isValid).toBe(false);
+    expect(result.errors.join(' ')).toContain('supportedRadios is not supported in schema version 3');
+  });
+
+  it('should require package, config, and asset name to match id and version', () => {
+    const [radio] = sampleCatalog.modules;
+
+    const wrongPackage = validateModuleCatalog({
+      schemaVersion: 3,
+      modules: [{ ...radio, package: '@springfield/radio-module-baofeng' }],
+    });
+    expect(wrongPackage.isValid).toBe(false);
+    expect(wrongPackage.errors.join(' ')).toContain('package must be @springfield/radio-module-baofeng-uv5r');
+
+    const wrongConfig = validateModuleCatalog({
+      schemaVersion: 3,
+      modules: [{ ...radio, config: 'configs/uv5r.json' }],
+    });
+    expect(wrongConfig.isValid).toBe(false);
+    expect(wrongConfig.errors.join(' ')).toContain('config must be configs/baofeng-uv5r.json');
+
+    const combinedZip = validateModuleCatalog({
+      schemaVersion: 3,
+      modules: [
+        {
+          ...radio,
+          downloadUrl:
+            'https://github.com/springfield-ham-radio/radio-module-baofeng/releases/download/v3.7.2/radio-module-baofeng-3.7.2.zip',
+        },
+      ],
+    });
+    expect(combinedZip.isValid).toBe(false);
+    expect(combinedZip.errors.join(' ')).toContain(
+      'downloadUrl must name the asset radio-module-baofeng-uv5r-3.7.0.zip',
+    );
+  });
+
+  it('should reject retired and short ids', () => {
+    const [radio] = sampleCatalog.modules;
+
+    for (const id of ['baofeng', 'uv5r']) {
+      const result = validateModuleCatalog({
+        schemaVersion: 3,
+        modules: [{ ...radio, id }],
+      });
+
+      expect(result.isValid).toBe(false);
+      expect(result.errors.join(' ')).toContain(`${id}`);
+      expect(result.errors.join(' ')).toContain('model id like baofeng-uv5r');
+    }
+  });
+
+  it('should reject non-semver version and minApiVersion', () => {
+    const [radio] = sampleCatalog.modules;
+
+    const version = validateModuleCatalog({
+      schemaVersion: 3,
+      modules: [{ ...radio, version: 'v3.7.0' }],
+    });
+    expect(version.isValid).toBe(false);
+    expect(version.errors.join(' ')).toContain('version must be a major.minor.patch semver');
+
+    const minApi = validateModuleCatalog({
+      schemaVersion: 3,
+      modules: [{ ...radio, minApiVersion: '18.0' }],
+    });
+    expect(minApi.isValid).toBe(false);
+    expect(minApi.errors.join(' ')).toContain('minApiVersion must be a major.minor.patch semver');
+  });
+
   it('should reject invalid catalogs', () => {
     const result = validateModuleCatalog({ schemaVersion: 99, modules: [] });
 
     expect(result.isValid).toBe(false);
-    expect(result.errors.join(' ')).toContain('schemaVersion');
+    expect(result.errors).toEqual(['Unsupported schemaVersion: expected schema version 3']);
   });
 
   it('should compare api versions', () => {

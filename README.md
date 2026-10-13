@@ -6,7 +6,7 @@ Docs: [Registry](https://springfield-ham-radio.github.io/ham-radio-docs/develope
 
 ## Catalog (schema version 3)
 
-`parseModuleCatalog` and `validateModuleCatalog` accept **schema version 3** only. Each `modules[]` entry describes one installable radio (`id` is `id.model`, `version` is the driver config version, `config` is the path inside the zip). Registry **2.x** rejects schema versions 1 and 2 and legacy `radios` / `supportedRadios` fields.
+`parseModuleCatalog` and `validateModuleCatalog` accept **schema version 3** only. Each `modules[]` entry describes one installable radio. `package` must be `@springfield/radio-module-<id>`, `config` must be `configs/<id>.json`, and the download URL must name `radio-module-<id>-<version>.zip`. `version` and `minApiVersion` must be `major.minor.patch`. Schema versions 1 and 2 are rejected with that schema error alone.
 
 See [`radio-configuration-discovery-proposal.md`](./radio-configuration-discovery-proposal.md) for the full field list and install flow.
 
