@@ -42,7 +42,7 @@
     "test:integration": "vitest run test/integration --passWithNoTests"
   },
   "dependencies": {
-    "@springfield/ham-radio-api": "^18.0.1",
+    "@springfield/ham-radio-api": "^18.2.0",
     "@springfield/ham-radio-utils": "^4.15.1",
     "loglayer": "^9.4.0"
   },
