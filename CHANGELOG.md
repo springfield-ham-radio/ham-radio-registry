@@ -1,3 +1,9 @@
+## [2.1.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v2.0.0...v2.1.0) (2026-10-17)
+
+### Features
+
+* validate optional readMessage and writeMessage on radio configs ([#30](https://github.com/springfield-ham-radio/ham-radio-registry/issues/30)) ([d2feb9e](https://github.com/springfield-ham-radio/ham-radio-registry/commit/d2feb9e758d7a608b5f20622ebe4d710c55ae253)), closes [springfield-ham-radio/ham-radio-api#24](https://github.com/springfield-ham-radio/ham-radio-api/issues/24)
+
 ## [2.0.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v1.7.3...v2.0.0) (2026-10-13)
 
 ### ⚠ BREAKING CHANGES
