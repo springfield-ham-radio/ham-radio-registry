@@ -1,5 +1,14 @@
-import type { ValidationResult } from '@springfield/ham-radio-api';
+import { validateRadioDialogMessage, type ValidationResult } from '@springfield/ham-radio-api';
 import type { RegistryRadio } from '../types/radio-config.js';
+
+function appendValidationResult(
+  errors: string[],
+  warnings: string[],
+  result: ValidationResult,
+): void {
+  errors.push(...result.errors);
+  warnings.push(...result.warnings);
+}
 
 /**
  * Validate a radio configuration for catalog ingest and registry use.
@@ -31,6 +40,9 @@ export function validateConfiguration(config: RegistryRadio): ValidationResult {
   if (!config.settingsSchema) {
     errors.push('Configuration must have settings schema');
   }
+
+  appendValidationResult(errors, warnings, validateRadioDialogMessage('readMessage', config.readMessage));
+  appendValidationResult(errors, warnings, validateRadioDialogMessage('writeMessage', config.writeMessage));
 
   return {
     errors,

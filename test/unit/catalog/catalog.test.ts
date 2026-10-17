@@ -106,6 +106,32 @@ describe('hydrateRadioConfig', () => {
   it('should throw when a $ref document is missing', () => {
     expect(() => hydrateRadioConfig(baofengShapedConfig(), {})).toThrow(/Missing document for \$ref/);
   });
+
+  it('should preserve readMessage and writeMessage', () => {
+    const raw = baofengShapedConfig();
+    raw.readMessage = {
+      title: 'Before read',
+      body: 'Line one\nLine two',
+      severity: 'info',
+    };
+    raw.writeMessage = {
+      title: 'Before write',
+      body: 'Watch out',
+      severity: 'warning',
+    };
+    const radio = hydrateRadioConfig(raw, documentsByRef);
+
+    expect(radio.readMessage).toEqual({
+      title: 'Before read',
+      body: 'Line one\nLine two',
+      severity: 'info',
+    });
+    expect(radio.writeMessage).toEqual({
+      title: 'Before write',
+      body: 'Watch out',
+      severity: 'warning',
+    });
+  });
 });
 
 describe('validateConfiguration', () => {
@@ -120,6 +146,58 @@ describe('validateConfiguration', () => {
     const result = validateConfiguration(radio);
     expect(result.isValid).toBe(true);
     expect(result.errors).toHaveLength(0);
+  });
+
+  function hydratedBaofeng(): RegistryRadio {
+    return hydrateRadioConfig(baofengShapedConfig(), documentsByRef);
+  }
+
+  describe('readMessage', () => {
+    it('should accept a configuration with readMessage omitted', () => {
+      const result = validateConfiguration(hydratedBaofeng());
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should accept a valid readMessage', () => {
+      const radio = hydratedBaofeng();
+      radio.readMessage = { title: 'Set Menu 9 to PC', body: 'Connect the cable.', severity: 'info' };
+      const result = validateConfiguration(radio);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should reject an invalid readMessage', () => {
+      const radio = hydratedBaofeng();
+      radio.readMessage = { title: '   ', body: 'ok' };
+      const result = validateConfiguration(radio);
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain('readMessage.title must not be empty');
+    });
+  });
+
+  describe('writeMessage', () => {
+    it('should accept a configuration with writeMessage omitted', () => {
+      const result = validateConfiguration(hydratedBaofeng());
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should accept a valid writeMessage', () => {
+      const radio = hydratedBaofeng();
+      radio.writeMessage = { title: 'Use the micro-USB port', body: 'Data cable required.', severity: 'warning' };
+      const result = validateConfiguration(radio);
+      expect(result.isValid).toBe(true);
+      expect(result.errors).toHaveLength(0);
+    });
+
+    it('should reject an invalid writeMessage', () => {
+      const radio = hydratedBaofeng();
+      radio.writeMessage = { title: 'ok', body: 'ok', severity: 'error' };
+      const result = validateConfiguration(radio);
+      expect(result.isValid).toBe(false);
+      expect(result.errors).toContain('writeMessage.severity must be "info" or "warning"');
+    });
   });
 });
 
