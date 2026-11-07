@@ -1,3 +1,13 @@
+## [2.1.1](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v2.1.0...v2.1.1) (2026-11-07)
+
+### Bug Fixes
+
+* **deps:** bump @springfield/ham-radio-utils ([#31](https://github.com/springfield-ham-radio/ham-radio-registry/issues/31)) ([986cd5c](https://github.com/springfield-ham-radio/ham-radio-registry/commit/986cd5c0fedcdcd765c51d31660c1039b4acef39))
+* **deps:** bump @springfield/ham-radio-utils ([#36](https://github.com/springfield-ham-radio/ham-radio-registry/issues/36)) ([1af50fc](https://github.com/springfield-ham-radio/ham-radio-registry/commit/1af50fc2c911763dc7246fab40b9922a34131393))
+* **deps:** bump fast-uri from 3.1.8 to 3.1.9 ([#35](https://github.com/springfield-ham-radio/ham-radio-registry/issues/35)) ([e3a5c79](https://github.com/springfield-ham-radio/ham-radio-registry/commit/e3a5c7934a363292fc7bd045c49ea7fa459c8725))
+* **deps:** bump the production-npm group with 2 updates ([#33](https://github.com/springfield-ham-radio/ham-radio-registry/issues/33)) ([cccde88](https://github.com/springfield-ham-radio/ham-radio-registry/commit/cccde88dc560655f5a845b3e7c9dabb1086d3e80))
+* **deps:** bump undici from 6.28.0 to 6.29.1 ([#38](https://github.com/springfield-ham-radio/ham-radio-registry/issues/38)) ([d5d6e01](https://github.com/springfield-ham-radio/ham-radio-registry/commit/d5d6e01bfa85d7ebafe76fd6c296296e0a655b3a))
+
 ## [2.1.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v2.0.0...v2.1.0) (2026-10-17)
 
 ### Features
