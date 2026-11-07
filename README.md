@@ -10,7 +10,10 @@ Docs: [Registry](https://springfield-ham-radio.github.io/ham-radio-docs/develope
 
 See [`radio-configuration-discovery-proposal.md`](./radio-configuration-discovery-proposal.md) for the full field list and install flow.
 
+Node.js 26.13.0 (`.nvmrc`) does not bundle Corepack.
+
 ```bash
+npm install --global corepack@0.36.0
 corepack enable
 yarn install
 yarn build
