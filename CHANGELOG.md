@@ -1,3 +1,11 @@
+## [2.1.2](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v2.1.1...v2.1.2) (2026-11-24)
+
+### Bug Fixes
+
+* **deps:** bump lodash-es from 4.17.21 to 4.18.1 ([#40](https://github.com/springfield-ham-radio/ham-radio-registry/issues/40)) ([dab1f49](https://github.com/springfield-ham-radio/ham-radio-registry/commit/dab1f49d83ae3bed05b85bb735bc11c1bab7bcb9))
+* **deps:** bump the production-npm group with 2 updates ([#41](https://github.com/springfield-ham-radio/ham-radio-registry/issues/41)) ([f7709a1](https://github.com/springfield-ham-radio/ham-radio-registry/commit/f7709a133b3b1da16f1783d94a1f02a774e19cea))
+* **release:** pin conventional-changelog-conventionalcommits to 10.4.1 ([#46](https://github.com/springfield-ham-radio/ham-radio-registry/issues/46)) ([1623c37](https://github.com/springfield-ham-radio/ham-radio-registry/commit/1623c373932fb797cb9ac1d847943dcef7bcff07))
+
 ## [2.1.1](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v2.1.0...v2.1.1) (2026-11-07)
 
 ### Bug Fixes
