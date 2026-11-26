@@ -201,6 +201,82 @@ describe('validateConfiguration', () => {
   });
 });
 
+describe('RadioCatConfig in hydrated configs', () => {
+  function rawWithCat(cat: Record<string, unknown>): Record<string, unknown> {
+    const raw = baofengShapedConfig();
+    (raw.capabilities as Record<string, boolean>).liveControl = true;
+    raw.cat = cat;
+    return raw;
+  }
+
+  it('should preserve TH-D74-shaped band-indexed cat block', () => {
+    const cat = {
+      protocol: 'kenwood',
+      vfoCount: 2,
+      frequencyCommands: ['FQ'],
+      frequencyWidth: 10,
+      modes: ['FM', 'DV', 'AM', 'LSB', 'USB', 'CW', 'NFM', 'DR', 'WFM', 'R-CW'],
+      bandModes: [
+        ['FM', 'DV', 'AM', 'NFM', 'DR', 'WFM'],
+        ['FM', 'DV', 'AM', 'LSB', 'USB', 'CW', 'NFM', 'DR', 'WFM', 'R-CW'],
+      ],
+      powers: ['H', 'M', 'L', 'EL'],
+      modeCommand: 'MD',
+      bandControl: true,
+      bandIndexed: true,
+      powerBandIndex: true,
+      vfoModeCommand: 'VM',
+      vfoModes: ['VFO', 'Memory', 'Call', 'DV'],
+    };
+    const radio = hydrateRadioConfig(rawWithCat(cat), documentsByRef);
+
+    expect(radio.cat).toEqual(cat);
+    expect(radio.cat?.bandModes?.[1]?.[9]).toBe('R-CW');
+    expect(radio.cat?.vfoModes?.[3]).toBe('DV');
+
+    const result = validateConfiguration(radio);
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('should preserve TM-D710A-shaped vfoChannel cat block without band-indexed keys', () => {
+    const cat = {
+      protocol: 'kenwood',
+      vfoCount: 2,
+      frequencyCommands: ['FO'],
+      frequencyWidth: 10,
+      vfoChannel: true,
+      modes: ['FM', 'NFM', 'AM'],
+      powers: ['High', 'Medium', 'Low'],
+      bandControl: true,
+      powerBandIndex: true,
+    };
+    const radio = hydrateRadioConfig(rawWithCat(cat), documentsByRef);
+
+    expect(radio.cat).toEqual(cat);
+    expect(radio.cat?.bandIndexed).toBeUndefined();
+    expect(radio.cat?.bandModes).toBeUndefined();
+    expect(radio.cat?.vfoModeCommand).toBeUndefined();
+    expect(radio.cat?.vfoModes).toBeUndefined();
+
+    const result = validateConfiguration(radio);
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+
+  it('should accept kenwood cat with only legacy optional fields', () => {
+    const cat = { protocol: 'kenwood', vfoCount: 2, powers: ['High', 'Medium', 'Low'] };
+    const radio = hydrateRadioConfig(rawWithCat(cat), documentsByRef);
+
+    expect(radio.cat).toEqual(cat);
+    expect(radio.cat?.bandIndexed).toBeUndefined();
+
+    const result = validateConfiguration(radio);
+    expect(result.isValid).toBe(true);
+    expect(result.errors).toHaveLength(0);
+  });
+});
+
 describe('extractCatalogMetadata', () => {
   it('should extract catalog fields and content hash', () => {
     const radio = hydrateRadioConfig(baofengShapedConfig(), documentsByRef);

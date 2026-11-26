@@ -49,6 +49,14 @@ export interface RadioCatConfig {
    * Mode is the last field. There is no separate `MD` command.
    */
   vfoChannel?: boolean;
+  /** When true, `FQ`/`MD`/`PC` take the band index first; omit bare reads and `BC n` polling. */
+  bandIndexed?: boolean;
+  /** Selectable mode names per band index. CAT codes stay the index in `modes`. */
+  bandModes?: string[][];
+  /** Band activity command, for example `VM` (read-only). */
+  vfoModeCommand?: string;
+  /** Activity labels in command code order (VFO, Memory, Call, DV). */
+  vfoModes?: string[];
   /** Mode names in CAT code order. */
   modes?: string[];
   /** Power names in CAT code order, as shown on the radio. */
