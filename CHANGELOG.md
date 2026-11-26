@@ -1,3 +1,9 @@
+## [2.2.0](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v2.1.2...v2.2.0) (2026-11-26)
+
+### Features
+
+* add band-indexed CAT fields to RadioCatConfig ([#48](https://github.com/springfield-ham-radio/ham-radio-registry/issues/48)) ([80ddd9e](https://github.com/springfield-ham-radio/ham-radio-registry/commit/80ddd9e3fd7a816cca9a19104440ca7a6c24504c))
+
 ## [2.1.2](https://github.com/springfield-ham-radio/ham-radio-registry/compare/v2.1.1...v2.1.2) (2026-11-24)
 
 ### Bug Fixes
